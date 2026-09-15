@@ -64,6 +64,14 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "allowedHosts": [
+              "all",
+              "codeparty3d.andrescortes.dev",
+              "128.140.106.63",
+              "localhost"
+            ]
+          },
           "configurations": {
             "production": {
               "buildTarget": "frontend:build:production"
