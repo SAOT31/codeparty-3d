@@ -407,26 +407,31 @@ export class BoardEngine {
 
   public hideDice() {
     this.stopCycling();
-    this.diceMesh.visible = false;
+    if (this.diceMesh) {
+      this.diceMesh.visible = false;
+    }
   }
 
   private startCycling() {
-    if (this.isRolling) return;
+    this.stopCycling();
     this.isRolling = true;
     this.currentDiceValue = 1;
     this.drawDiceFace(1);
 
-    if (this.rollTimer) clearInterval(this.rollTimer);
     this.rollTimer = setInterval(() => {
+      if (!this.isRolling || !this.diceMesh || !this.diceMesh.visible) {
+        this.stopCycling();
+        return;
+      }
       this.currentDiceValue = (this.currentDiceValue % 9) + 1;
       this.drawDiceFace(this.currentDiceValue);
-      if (this.onDiceTick) {
+      if (this.onDiceTick && this.isRolling && this.diceMesh.visible) {
         this.onDiceTick(this.currentDiceValue);
       }
-    }, 75);
+    }, 100);
   }
 
-  private stopCycling() {
+  public stopCycling() {
     this.isRolling = false;
     if (this.rollTimer) {
       clearInterval(this.rollTimer);

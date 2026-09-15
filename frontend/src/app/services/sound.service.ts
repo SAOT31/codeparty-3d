@@ -152,9 +152,8 @@ export class SoundService {
   }
 
   playDiceTick(step: number = 1) {
-    const baseFreq = 520 + ((step * 47) % 280);
-    this.playTone(baseFreq, 0.032, 'triangle', 0.16);
-    this.playTone(baseFreq * 1.5, 0.018, 'sine', 0.08);
+    const baseFreq = 540 + ((step * 38) % 220);
+    this.playTone(baseFreq, 0.025, 'triangle', 0.12);
   }
 
   playElimination() {

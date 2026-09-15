@@ -676,6 +676,10 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.socketService.disconnect();
     this.botService.clearBots();
+    if (this.boardEngine) {
+      this.boardEngine.hideDice();
+      this.boardEngine.stopCycling();
+    }
     this.soundService.stopMusic();
   }
 
@@ -1519,6 +1523,10 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
   private finishTurn() {
     this.isMyTurn = false;
     this.diceWaitingForHit = false;
+    this.isDiceRolling = false;
+    if (this.boardEngine) {
+      this.boardEngine.hideDice();
+    }
     if (!this.isLocalMultiplayer && !this.isCpuMode && this.codigoSala) {
       setTimeout(() => {
         this.socketService.sendBoardEndTurn(this.codigoSala);
