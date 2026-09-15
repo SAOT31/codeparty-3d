@@ -52,6 +52,7 @@ services:
       WATCHPACK_POLLING: "true"
     ports:
       - "4200:4200"
+      - "80:4200"
     volumes:
       - ./frontend:/app
       - /app/node_modules
