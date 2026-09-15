@@ -9,6 +9,7 @@ export class BoardEngine {
   public boardGroup: THREE.Group;
   public diceMesh!: THREE.Group;
   public currentDiceValue = 1;
+  public onDiceTick?: (value: number) => void;
 
   private isRolling = false;
   private rollTimer: any = null;
@@ -419,7 +420,10 @@ export class BoardEngine {
     this.rollTimer = setInterval(() => {
       this.currentDiceValue = (this.currentDiceValue % 9) + 1;
       this.drawDiceFace(this.currentDiceValue);
-    }, 65);
+      if (this.onDiceTick) {
+        this.onDiceTick(this.currentDiceValue);
+      }
+    }, 75);
   }
 
   private stopCycling() {

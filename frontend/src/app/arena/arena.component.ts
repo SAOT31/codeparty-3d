@@ -430,6 +430,9 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
     const dificultad = sessionStorage.getItem('codearena_dificultad') || 'basico';
 
     this.boardEngine = new BoardEngine(this.scenarioId);
+    this.boardEngine.onDiceTick = (val: number) => {
+      this.soundService.playDiceTick(val);
+    };
     this.inputHandler = new InputHandler(this.gameMode, this.playerSlot);
 
     if (this.isLocalMultiplayer) {
@@ -1052,11 +1055,14 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
       if (isCorrect) {
         this.soundService.playCorrectAnswer();
         player.score += 20;
-        player.skillsReady.boost = true;
+        const powers: Habilidad[] = ['boost', 'shield', 'attack'];
+        const p = powers[Math.floor(Math.random() * powers.length)];
+        player.skillsReady[p] = true;
         this.myScore = player.score;
         this.skillsReady = { ...player.skillsReady };
         player.charInstance?.updatePlayerBadge(player.nickname, player.score);
-        this.showNotification(`✨ ¡${player.nickname} acertó! +20 Monedas y ganaste Doble Dado 🚀`);
+        const nom = p === 'boost' ? 'Doble Dado 🚀' : p === 'shield' ? 'Escudo 🛡️' : 'Bolsa de Monedas 🌟';
+        this.showNotification(`✨ ¡${player.nickname} acertó! +20 Monedas y ganaste ${nom}`);
       } else {
         this.soundService.playWrongAnswer();
         this.showNotification(`❌ Respuesta incorrecta para ${player.nickname}. ¡Mejor suerte la próxima!`);
@@ -1075,9 +1081,12 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
     if (isCorrect) {
       this.soundService.playCorrectAnswer();
       this.myScore += 20;
-      this.skillsReady.boost = true;
+      const powers: Habilidad[] = ['boost', 'shield', 'attack'];
+      const p = powers[Math.floor(Math.random() * powers.length)];
+      this.skillsReady[p] = true;
       this.myCharacter.updatePlayerBadge(this.myNickname, this.myScore);
-      this.showNotification('✨ ¡Respuesta Correcta! +20 Monedas y ganaste Doble Dado 🚀');
+      const nom = p === 'boost' ? 'Doble Dado 🚀' : p === 'shield' ? 'Escudo 🛡️' : 'Bolsa de Monedas 🌟';
+      this.showNotification(`✨ ¡Respuesta Correcta! +20 Monedas y ganaste ${nom}`);
     } else {
       this.soundService.playWrongAnswer();
       this.showNotification('❌ Respuesta incorrecta. ¡Mejor suerte la próxima!');
