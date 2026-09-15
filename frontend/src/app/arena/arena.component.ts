@@ -18,6 +18,8 @@ import { BotService, BotState } from '../services/bot.service';
 import { LOCAL_PREGUNTAS } from '../services/local-questions';
 import { BoardEngine } from './board/board.engine';
 import { ApiService } from '../services/api.service';
+import { ArenaVfxService } from './arena-vfx.service';
+import { ArenaTurnService } from './arena-turn.service';
 
 export interface LocalPlayerState {
   id: string;
@@ -400,6 +402,8 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
     private botService: BotService,
     private soundService: SoundService,
     private apiService: ApiService,
+    private arenaVfx: ArenaVfxService,
+    private arenaTurnService: ArenaTurnService,
   ) {}
 
   ngOnInit() {
@@ -678,6 +682,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 200);
     this.cameraController = new CameraController(this.camera);
+    this.arenaVfx.registerCameraController(this.cameraController);
 
     this.renderer = new THREE.WebGLRenderer({
       canvas,
@@ -823,6 +828,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
       const char = (data.playerId === this.myPlayerId) ? this.myCharacter : this.otherCharacters.get(data.playerId);
       this.boardEngine.hitDice();
       this.soundService.playHit();
+      this.arenaVfx.onDiceLanded();
       if (char) {
         char.headbuttJump(() => {}, () => {});
         const isDoubled = data.isBoost;
@@ -859,10 +865,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
         p.score = data.score;
         p.stars = data.stars;
       }
-      this.rankingPlayers = [...this.rankingPlayers].sort((a: any, b: any) => {
-        if ((b.stars || 0) !== (a.stars || 0)) return (b.stars || 0) - (a.stars || 0);
-        return b.score - a.score;
-      });
+      this.rankingPlayers = this.arenaTurnService.computeSortedRanking(this.rankingPlayers);
     });
 
     this.socketService.playerDisconnected$.subscribe((data) => {
@@ -879,6 +882,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
         winnerNickname: data.winnerNickname,
         ranking: this.rankingPlayers,
       };
+      this.arenaVfx.onGameOverVictory();
       this.soundService.stopMusic();
       this.soundService.playVictory();
     });
@@ -975,6 +979,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
       if (player && player.skillsReady[habilidad]) {
         player.skillsReady[habilidad] = false;
         this.skillsReady = { ...player.skillsReady };
+        this.arenaVfx.onSkillActivated();
         if (habilidad === 'boost') {
           player.isBoostActive = true;
           this.soundService.playBoost();
@@ -1006,6 +1011,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (this.skillsReady[habilidad]) {
       this.skillsReady[habilidad] = false;
+      this.arenaVfx.onSkillActivated();
       if (habilidad === 'boost') {
         this.isBoostActive = true;
         this.soundService.playBoost();
@@ -1041,7 +1047,9 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (this.isLocalMultiplayer) {
       const player = this.localPlayersList[this.currentLocalTurnIndex];
-      if (currentQ && index === currentQ.correcta) {
+      const isCorrect = !!(currentQ && index === currentQ.correcta);
+      this.arenaVfx.onTriviaResult(isCorrect);
+      if (isCorrect) {
         this.soundService.playCorrectAnswer();
         player.score += 20;
         player.skillsReady.boost = true;
@@ -1062,13 +1070,15 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    if (currentQ && index === currentQ.correcta) {
+    const isCorrect = !!(currentQ && index === currentQ.correcta);
+    this.arenaVfx.onTriviaResult(isCorrect);
+    if (isCorrect) {
       this.soundService.playCorrectAnswer();
       this.myScore += 20;
       this.skillsReady.boost = true;
       this.myCharacter.updatePlayerBadge(this.myNickname, this.myScore);
       this.showNotification('✨ ¡Respuesta Correcta! +20 Monedas y ganaste Doble Dado 🚀');
-    } else if (currentQ && index !== currentQ.correcta) {
+    } else {
       this.soundService.playWrongAnswer();
       this.showNotification('❌ Respuesta incorrecta. ¡Mejor suerte la próxima!');
     }
@@ -1220,6 +1230,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.isLocalMultiplayer && !this.isCpuMode && this.codigoSala) {
       const diceRoll = Math.floor(Math.random() * 6) + 1;
       this.soundService.playHit();
+      this.arenaVfx.onDiceLanded();
       this.socketService.sendBoardHitDice(this.codigoSala, this.myPlayerId, diceRoll, this.isBoostActive);
       if (this.isBoostActive) this.isBoostActive = false;
       return;
@@ -1227,6 +1238,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
 
     const diceRoll = this.boardEngine.hitDice();
     this.soundService.playHit();
+    this.arenaVfx.onDiceLanded();
 
     const activeChar = this.getActiveTurnCharacter();
     activeChar.headbuttJump(() => {}, () => {});
@@ -1234,7 +1246,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.isLocalMultiplayer) {
       const activePlayer = this.localPlayersList[this.currentLocalTurnIndex];
       const isDoubled = activePlayer.isBoostActive;
-      const steps = isDoubled ? diceRoll * 2 : diceRoll;
+      const steps = this.arenaTurnService.calculateStepMovement(diceRoll, isDoubled);
       if (activePlayer.isBoostActive) {
         activePlayer.isBoostActive = false;
         this.showNotification(`🚀 ¡BOOST ACTIVADO! Dado (${diceRoll}) x2 = ¡${steps} casillas!`);
@@ -1251,7 +1263,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
       }, 700);
     } else {
       const isDoubled = this.isBoostActive;
-      const steps = isDoubled ? diceRoll * 2 : diceRoll;
+      const steps = this.arenaTurnService.calculateStepMovement(diceRoll, isDoubled);
       if (this.isBoostActive) {
         this.isBoostActive = false;
         this.showNotification(`🚀 ¡BOOST ACTIVADO! Dado (${diceRoll}) x2 = ¡${steps} casillas!`);
@@ -1303,11 +1315,14 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
       if (player.isBot) {
         if (tile.type === 'blue') {
           player.score += 10;
+          this.arenaVfx.onBlueTileReward();
         } else if (tile.type === 'red') {
           player.score = Math.max(0, player.score - 5);
+          this.arenaVfx.onRedTilePenalty();
         } else if (tile.type === 'star') {
           player.stars = (player.stars || 0) + 1;
           player.score += 30;
+          this.arenaVfx.onStarObtained();
           this.showNotification(`⭐ ¡${player.nickname} consiguió una Estrella!`);
         } else if (tile.type === 'trivia') {
           const acierta = Math.random() > 0.35;
@@ -1321,10 +1336,11 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
           const powers: Habilidad[] = ['boost', 'shield', 'attack'];
           const p = powers[Math.floor(Math.random() * powers.length)];
           player.skillsReady[p] = true;
+          this.arenaVfx.onBlueTileReward();
         }
         char.updatePlayerBadge(player.nickname, player.score);
         this.updateLocalRanking();
-        if (player.stars >= this.targetStars || player.score >= this.targetPoints) {
+        if (this.arenaTurnService.checkVictoryTarget(player.stars, player.score, this.targetStars, this.targetPoints)) {
           this.declareLocalWinner(player);
           return;
         }
@@ -1333,16 +1349,18 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
         if (tile.type === 'blue') {
           player.score += 10;
           this.myScore = player.score;
+          this.arenaVfx.onBlueTileReward();
           this.soundService.playCorrectAnswer();
           this.showNotification(`🔵 ¡${player.nickname} cayó en Casilla Azul! +10 Monedas`);
           char.updatePlayerBadge(player.nickname, player.score);
           this.updateLocalRanking();
-          if (player.stars >= this.targetStars || player.score >= this.targetPoints) {
+          if (this.arenaTurnService.checkVictoryTarget(player.stars, player.score, this.targetStars, this.targetPoints)) {
             this.declareLocalWinner(player);
             return;
           }
           this.finishTurn();
         } else if (tile.type === 'red') {
+          this.arenaVfx.onRedTilePenalty();
           if (!player.isShieldActive) {
             player.score = Math.max(0, player.score - 5);
             this.myScore = player.score;
@@ -1365,6 +1383,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
           const p = powers[Math.floor(Math.random() * powers.length)];
           player.skillsReady[p] = true;
           this.skillsReady = { ...player.skillsReady };
+          this.arenaVfx.onBlueTileReward();
           this.soundService.playCorrectAnswer();
           const nom = p === 'boost' ? 'DOBLE DADO 🚀' : p === 'shield' ? 'ESCUDO 🛡️' : 'BOLSA DE MONEDAS 🌟';
           this.showNotification(`🎁 ¡${player.nickname} obtuvo ${nom}!`);
@@ -1374,11 +1393,12 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
           player.score += 30;
           this.myStars = player.stars;
           this.myScore = player.score;
+          this.arenaVfx.onStarObtained();
           this.soundService.playVictory();
           this.showNotification(`⭐ ¡${player.nickname} capturó una SUPER ESTRELLA! (+1 ⭐ / +30 pts)`);
           char.updatePlayerBadge(player.nickname, player.score);
           this.updateLocalRanking();
-          if (player.stars >= this.targetStars || player.score >= this.targetPoints) {
+          if (this.arenaTurnService.checkVictoryTarget(player.stars, player.score, this.targetStars, this.targetPoints)) {
             this.declareLocalWinner(player);
             return;
           }
@@ -1391,6 +1411,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
     if (isLocalPlayer) {
       if (tile.type === 'blue') {
         this.myScore += 10;
+        this.arenaVfx.onBlueTileReward();
         this.soundService.playCorrectAnswer();
         this.showNotification('🔵 ¡Casilla Azul! +10 Monedas');
         this.myCharacter.updatePlayerBadge(this.myNickname, this.myScore);
@@ -1398,13 +1419,14 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
         if (!this.isCpuMode && this.codigoSala) {
           this.socketService.sendBoardTileEffect(this.codigoSala, this.myPlayerId, 'blue', 10, 0);
         }
-        if (this.isCpuMode && (this.myStars >= this.targetStars || this.myScore >= this.targetPoints)) {
+        if (this.isCpuMode && this.arenaTurnService.checkVictoryTarget(this.myStars, this.myScore, this.targetStars, this.targetPoints)) {
           this.declareBoardWinner();
           return;
         }
         this.finishTurn();
       } else if (tile.type === 'red') {
         let delta = 0;
+        this.arenaVfx.onRedTilePenalty();
         if (!this.isShieldActive) {
           delta = -5;
           this.myScore = Math.max(0, this.myScore - 5);
@@ -1429,6 +1451,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
         const powers: Habilidad[] = ['boost', 'shield', 'attack'];
         const p = powers[Math.floor(Math.random() * powers.length)];
         this.skillsReady[p] = true;
+        this.arenaVfx.onBlueTileReward();
         this.soundService.playCorrectAnswer();
         const nom = p === 'boost' ? 'DOBLE DADO 🚀' : p === 'shield' ? 'ESCUDO 🛡️' : 'BOLSA DE MONEDAS 🌟';
         this.showNotification(`🎁 ¡Casilla de Regalo! Ganaste ${nom}`);
@@ -1439,6 +1462,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
       } else if (tile.type === 'star') {
         this.myStars++;
         this.myScore += 30;
+        this.arenaVfx.onStarObtained();
         this.soundService.playVictory();
         this.showNotification('⭐ ¡SUPER ESTRELLA! +1 Estrella & +30 Pts');
         this.myCharacter.updatePlayerBadge(this.myNickname, this.myScore);
@@ -1446,7 +1470,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
         if (!this.isCpuMode && this.codigoSala) {
           this.socketService.sendBoardTileEffect(this.codigoSala, this.myPlayerId, 'star', 30, 1);
         }
-        if (this.isCpuMode && (this.myStars >= this.targetStars || this.myScore >= this.targetPoints)) {
+        if (this.isCpuMode && this.arenaTurnService.checkVictoryTarget(this.myStars, this.myScore, this.targetStars, this.targetPoints)) {
           this.declareBoardWinner();
           return;
         }
@@ -1570,6 +1594,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
         () => {
           const steps = this.boardEngine.hitDice();
           this.soundService.playHit();
+          this.arenaVfx.onDiceLanded();
           this.showNotification(`🤖 ${bot.nickname} golpeó el dado: ¡${steps}!`);
 
           setTimeout(() => {
@@ -1599,6 +1624,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
         () => {
           const steps = this.boardEngine.hitDice();
           this.soundService.playHit();
+          this.arenaVfx.onDiceLanded();
           this.showNotification(`🤖 ${botPlayer.nickname} lanzó el dado: ¡${steps}!`);
 
           setTimeout(() => {
@@ -1633,6 +1659,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
       })),
     };
     this.isWinner = !winningPlayer.isBot;
+    this.arenaVfx.onGameOverVictory();
     this.soundService.stopMusic();
     this.isWinner ? this.soundService.playVictory() : this.soundService.playDefeat();
   }
@@ -1660,6 +1687,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
       ranking: all,
     };
     this.isWinner = winnerNick === this.myNickname;
+    this.arenaVfx.onGameOverVictory();
     this.soundService.stopMusic();
     this.isWinner ? this.soundService.playVictory() : this.soundService.playDefeat();
   }
