@@ -6,6 +6,7 @@ import { ArenaComponent } from './arena/arena.component';
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'lobby/:codigo', component: LobbyComponent },
-  { path: 'arena/:codigo', component: ArenaComponent },
+  { path: 'tablero/:codigo', component: ArenaComponent },
+  { path: 'arena/:codigo', redirectTo: 'tablero/:codigo' },
   { path: '**', redirectTo: '' },
 ];

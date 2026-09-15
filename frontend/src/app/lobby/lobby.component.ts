@@ -651,7 +651,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
     if (this.isLocal) {
       sessionStorage.setItem('codearena_local_players', JSON.stringify(this.localSlots));
       sessionStorage.setItem('codearena_character', this.localSlots[0].characterType || 'star');
-      this.router.navigate(['/arena/local']);
+      this.router.navigate(['/tablero/local']);
       return;
     }
 
@@ -681,6 +681,6 @@ export class LobbyComponent implements OnInit, OnDestroy {
 
   private navigateToArena() {
     this.soundService.stopMusic();
-    this.router.navigate(['/arena', this.codigoSala]);
+    this.router.navigate(['/tablero', this.codigoSala]);
   }
 }
