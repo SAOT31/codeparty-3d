@@ -1968,7 +1968,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (!host || host === 'localhost' || host.startsWith('172.')) {
       host = '192.168.1.4';
     }
-    const port = typeof window !== 'undefined' && window.location.port ? window.location.port : '4200';
+    const port = typeof window !== 'undefined' && window.location.port ? window.location.port : '';
+    if (!port || port === '80' || port === '443') {
+      return `http://${host}`;
+    }
     return `http://${host}:${port}`;
   }
 

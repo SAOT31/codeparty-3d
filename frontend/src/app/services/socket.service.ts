@@ -11,7 +11,7 @@ import { ScenarioId } from '../arena/scenarios/scenario.factory';
 export class SocketService {
   private socket: Socket | null = null;
   private readonly serverUrl = typeof window !== 'undefined'
-    ? ((window as any).__CODEARENA_SERVER_URL__ || `http://${window.location.hostname || 'localhost'}:3000`)
+    ? ((window as any).__CODEARENA_SERVER_URL__ || (window.location.protocol === 'https:' ? `${window.location.protocol}//${window.location.host}` : `http://${window.location.hostname || 'localhost'}:3000`))
     : 'http://localhost:3000';
 
   private roomStateSubject = new Subject<GameState>();

@@ -42,7 +42,7 @@ export interface SalasActivasResponse {
 })
 export class ApiService {
   private readonly baseUrl = typeof window !== 'undefined'
-    ? ((window as any).__CODEARENA_SERVER_URL__ || `http://${window.location.hostname || 'localhost'}:3000`)
+    ? ((window as any).__CODEARENA_SERVER_URL__ || (window.location.protocol === 'https:' ? `${window.location.protocol}//${window.location.host}` : `http://${window.location.hostname || 'localhost'}:3000`))
     : 'http://localhost:3000';
 
   constructor(private readonly http: HttpClient) {}
