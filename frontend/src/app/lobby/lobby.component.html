@@ -1,0 +1,136 @@
+
+    <div class="lobby-container">
+      <div class="stars-bg"></div>
+
+      <div class="lobby-card glass-panel" *ngIf="phase === 'waiting'" style="animation: bounce-in 0.5s cubic-bezier(0.34,1.56,0.64,1) both;">
+        <div class="lobby-header">
+          <button class="sound-mini-btn lobby-sound-btn" (click)="toggleSound()" id="btn-lobby-sound" [title]="isMuted ? 'Activar sonido' : 'Silenciar sonido'">
+            {{ isMuted ? '🔇' : '🔊' }}
+          </button>
+          <div class="lobby-icon">🎮</div>
+          <h1 class="lobby-title">Sala de Espera</h1>
+          <p class="lobby-sub">Comparte el código con tus amigos</p>
+        </div>
+
+        <div class="info-row">
+          <div class="info-badge" id="badge-codigo">
+            <span class="info-lbl">🔑 Código</span>
+            <span class="info-val code-val">{{ codigoSala }}</span>
+          </div>
+          <div class="info-badge" id="badge-tema">
+            <span class="info-lbl">🧠 Tema</span>
+            <span class="info-val text-accent">{{ temaSala }}</span>
+          </div>
+          <div class="info-badge" id="badge-meta">
+            <span class="info-lbl">🏆 Meta de Victoria</span>
+            <span class="info-val" style="color: #ffd700; font-size: 0.88rem;">{{ targetStars }}⭐ o {{ targetPoints }}🪙</span>
+          </div>
+          <div class="info-badge" id="badge-jugadores">
+            <span class="info-lbl">👥 Jugadores</span>
+            <span class="info-val text-primary">{{ playerCount }} / 4</span>
+          </div>
+        </div>
+
+        <div class="slots-grid">
+          <div class="slot-card glass-panel"
+               *ngFor="let slot of slots; let i = index"
+               [class.slot-occupied]="slot.occupied"
+               [class.slot-me]="slot.isMe">
+
+            <div class="slot-number">{{ i + 1 }}</div>
+
+            <div class="slot-content" *ngIf="slot.occupied">
+              <div class="char-icon">{{ getCharEmoji(slot.characterType) }}</div>
+              <div class="slot-info">
+                <span class="slot-name">{{ slot.nickname }}</span>
+                <div class="slot-badges">
+                  <span class="badge-host" *ngIf="slot.isHost">👑 Host</span>
+                  <span class="badge-me" *ngIf="slot.isMe">Tú</span>
+                </div>
+              </div>
+              <span class="slot-ready">✅</span>
+            </div>
+
+            <div class="slot-empty" *ngIf="!slot.occupied">
+              <span>⏳ Esperando jugador...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="host-alert" *ngIf="isNewHost" style="animation: bounce-in 0.4s ease both;">
+          👑 ¡Eres el nuevo host! Puedes iniciar la partida.
+        </div>
+
+        <div class="actions-row">
+          <button id="btn-iniciar" class="btn-play btn-start"
+                  *ngIf="isHost"
+                  [disabled]="playerCount < 1"
+                  (click)="iniciarSeleccionPersonaje()">
+            🎮 ¡Elegir Personajes!
+          </button>
+
+          <div class="wait-msg" *ngIf="!isHost">
+            <div class="wait-spinner">⏳</div>
+            <span>Esperando al host...</span>
+          </div>
+        </div>
+
+        <div class="share-hint" *ngIf="isHost">
+          Comparte <strong>{{ codigoSala }}</strong> con tus amigos
+        </div>
+      </div>
+
+      <div class="lobby-card wide-card glass-panel" *ngIf="phase === 'character'" style="animation: bounce-in 0.5s cubic-bezier(0.34,1.56,0.64,1) both;">
+        <app-character-selector
+          [takenTypes]="takenCharacters"
+          [myPlayerId]="myPlayerId"
+          [currentPickerName]="isLocal ? currentPickerName : ''"
+          (characterSelected)="onCharacterSelected($event)"
+        ></app-character-selector>
+
+        <div class="phase-players">
+          <div class="phase-player" *ngFor="let slot of displaySlots">
+            <div class="char-icon-sm">{{ getCharEmoji(slot.characterType) }}</div>
+            <span class="phase-player-name" [class.me]="slot.isMe">{{ slot.nickname }}</span>
+            <span class="phase-status" *ngIf="slot.characterType">✅</span>
+            <span class="phase-status pending" *ngIf="!slot.characterType">⌛</span>
+          </div>
+        </div>
+
+        <div class="actions-row">
+          <button id="btn-continuar-escenario" class="btn-play btn-start"
+                  *ngIf="isHost"
+                  [disabled]="isLocal ? !allLocalHumansChosen : !myCharacterType"
+                  (click)="iniciarVotacionEscenario()">
+            🗺️ Votar Escenario →
+          </button>
+          <div class="wait-msg" *ngIf="!isHost">
+            <div class="wait-spinner">⏳</div>
+            <span>Esperando al host para continuar...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="lobby-card wide-card glass-panel" *ngIf="phase === 'scenario'" style="animation: bounce-in 0.5s cubic-bezier(0.34,1.56,0.64,1) both;">
+        <app-scenario-vote
+          [myPlayerId]="myPlayerId"
+          [voteCounts]="scenarioVoteCounts"
+          [currentWinner]="scenarioWinner"
+          (voted)="onScenarioVoted($event)"
+          (voteFinished)="onVoteFinished($event)"
+        ></app-scenario-vote>
+
+        <div class="actions-row" style="margin-top: 16px;">
+          <button id="btn-iniciar-partida" class="btn-play btn-start"
+                  *ngIf="isHost"
+                  (click)="iniciarPartida()">
+            🚀 ¡Iniciar Partida!
+          </button>
+          <div class="wait-msg" *ngIf="!isHost">
+            <div class="wait-spinner">⏳</div>
+            <span>El host iniciará la partida...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  

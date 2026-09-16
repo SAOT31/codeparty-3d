@@ -1,0 +1,50 @@
+
+    <div class="modal-backdrop">
+      <div class="corner-overlay" style="animation: bounce-in 0.35s cubic-bezier(0.34,1.56,0.64,1) both;">
+        <div class="corner-card glass-panel">
+          <div class="corner-header">
+            <div class="skill-badge" [class]="habilidad">
+              <span class="skill-icon">💡</span>
+              <span>TRIVIA DE CÓDIGO</span>
+            </div>
+            <div class="timer" [class.critical]="timeLeft <= 5">
+              ⏱️ {{ timeLeft }}s
+            </div>
+          </div>
+
+          <div class="timer-bar-track">
+            <div
+              class="timer-bar-fill"
+              [style.width.%]="(timeLeft / 20) * 100"
+              [class.critical]="timeLeft <= 5"
+            ></div>
+          </div>
+
+          <div class="question-body">
+            <p class="question-text">{{ pregunta.enunciado }}</p>
+          </div>
+
+          <div class="options-grid">
+            <button
+              class="option-btn"
+              *ngFor="let op of pregunta.opciones; let i = index"
+              [class.selected]="selectedOption === i"
+              [class.correct-btn]="answered && i === pregunta.correcta"
+              [class.wrong-btn]="answered && selectedOption === i && !isCorrect"
+              [disabled]="answered"
+              (click)="selectOption(i)"
+              [id]="'opt-' + i"
+            >
+              <span class="option-letter">{{ ['A', 'B', 'C', 'D'][i] }}</span>
+              <span class="option-text">{{ op }}</span>
+            </button>
+          </div>
+
+          <div class="result-message" *ngIf="answered">
+            <span *ngIf="isCorrect" class="neon-green">✨ ¡CORRECTO! +20 Monedas y Habilidad Obtenida</span>
+            <span *ngIf="!isCorrect" class="neon-red">❌ ¡Fallaste! La respuesta correcta era: {{ ['A', 'B', 'C', 'D'][pregunta.correcta] }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  

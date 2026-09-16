@@ -1,0 +1,85 @@
+
+    <div class="arena-wrapper">
+      <canvas #renderCanvas class="three-canvas"></canvas>
+
+      <app-hud
+        [nickname]="myNickname"
+        [playerColor]="myColor"
+        [score]="myScore"
+        [stars]="myStars"
+        [currentTile]="myTileIndex"
+        [currentRound]="roundNumber"
+        [totalRounds]="totalRounds"
+        [targetStars]="targetStars"
+        [targetPoints]="targetPoints"
+        [otherPlayers]="rankingPlayers"
+        [skillsReady]="skillsReady"
+        [notificationText]="notification"
+        [disconnectedPlayer]="disconnectedPlayer"
+        [characterEmoji]="myCharacterEmoji"
+        [isMuted]="isMuted"
+        [isPaused]="isGamePaused"
+        [isMyTurn]="isMyTurn"
+        [currentTurnNickname]="currentTurnNickname"
+        [isDiceRolling]="isDiceRolling"
+        [diceWaitingForHit]="diceWaitingForHit"
+        (rollDiceClick)="rollDice()"
+        (skillAction)="handleSkillAction($event)"
+        (toggleSoundClick)="toggleSound()"
+        (togglePauseClick)="togglePause()"
+        (zoomInClick)="zoomIn()"
+        (zoomOutClick)="zoomOut()"
+        (rotateLeftClick)="rotateLeft()"
+        (rotateRightClick)="rotateRight()"
+        (resetCameraClick)="resetCamera()"
+      ></app-hud>
+
+      <app-question-modal
+        *ngIf="activeQuestion"
+        [habilidad]="activeSkillRequested"
+        [pregunta]="activeQuestion"
+        (answeredEvent)="handleAnswerSubmitted($event)"
+      ></app-question-modal>
+
+      <div class="modal-backdrop" *ngIf="isGamePaused && !gameOverData">
+        <div class="pause-overlay glass-panel">
+          <div class="pause-badge">⏸️ PAUSA</div>
+          <h2 class="pause-title">Partida Pausada</h2>
+          <p class="pause-subtitle">Tómate un respiro o ajusta tus opciones de juego:</p>
+
+          <div class="pause-actions">
+            <button class="btn-pause-action btn-resume" (click)="togglePause()" id="btn-pause-resume">
+              ▶️ Continuar Partida
+            </button>
+            <button class="btn-pause-action btn-sound" (click)="toggleSound()" id="btn-pause-sound">
+              {{ isMuted ? '🔇 Activar Sonido' : '🔊 Silenciar Sonido' }}
+            </button>
+            <button class="btn-pause-action btn-menu" (click)="returnToHome()" id="btn-pause-exit">
+              🏠 Salir al Menú Principal
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-backdrop" *ngIf="gameOverData">
+        <div class="game-over-overlay glass-panel">
+          <div class="go-trophy">🏆</div>
+          <h1 class="go-title">{{ isWinner ? '¡Ganaste!' : 'Fin de Partida' }}</h1>
+          <div class="go-winner">{{ gameOverData.winnerNickname }}</div>
+
+          <div class="go-ranking">
+            <div class="gor-row" *ngFor="let r of gameOverData.ranking; let i = index">
+              <span class="gor-medal">{{ i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '#' + (i+1) }}</span>
+              <span class="gor-dot" [style.background]="r.color"></span>
+              <span class="gor-name">{{ r.nickname }}{{ r.isBot ? ' 🤖' : '' }}</span>
+              <span class="gor-pts">{{ r.score }} pts</span>
+            </div>
+          </div>
+
+          <div class="go-actions">
+            <button class="btn-play" (click)="returnToHome()" id="btn-go-home">🏠 Menú Principal</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  

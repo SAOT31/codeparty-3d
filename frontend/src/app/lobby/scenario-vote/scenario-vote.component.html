@@ -1,0 +1,45 @@
+
+    <div class="scenario-vote">
+      <h2 class="sv-title">🗺️ Voten el Escenario</h2>
+
+      <div class="sv-timer-row">
+        <div class="sv-timer" [class.critical]="timeLeft <= 5">{{ timeLeft }}s</div>
+        <div class="sv-timer-track">
+          <div class="sv-timer-fill" [style.width.%]="(timeLeft / 15) * 100" [class.critical]="timeLeft <= 5"></div>
+        </div>
+      </div>
+
+      <p class="sv-sub">El escenario con más votos gana — empate = aleatorio</p>
+
+      <div class="sv-cards">
+        <div
+          class="sv-card"
+          *ngFor="let def of defs"
+          [class.sv-selected]="myVote === def.id"
+          [class.sv-winning]="currentWinner === def.id"
+          (click)="vote(def.id)"
+          [id]="'vote-' + def.id"
+        >
+          <div class="sv-vote-bar" [style.width.%]="getVotePercent(def.id)"></div>
+
+          <div class="sv-card-content">
+            <div class="sv-emoji">{{ def.emoji }}</div>
+            <div class="sv-name">{{ def.name }}</div>
+            <div class="sv-desc">{{ def.description }}</div>
+
+            <div class="sv-votes-count">
+              <span class="sv-vote-num">{{ getVoteCount(def.id) }}</span>
+              <span class="sv-vote-lbl"> voto{{ getVoteCount(def.id) !== 1 ? 's' : '' }}</span>
+              <span class="sv-winner-badge" *ngIf="currentWinner === def.id"> 🏆 Ganando</span>
+            </div>
+
+            <div class="sv-my-vote" *ngIf="myVote === def.id">✅ Tu voto</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sv-result" *ngIf="timeLeft === 0">
+        <span>{{ getWinnerDef()?.emoji }} <strong>{{ getWinnerDef()?.name }}</strong> ganó la votación</span>
+      </div>
+    </div>
+  

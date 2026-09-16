@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { BoardTile, TileType, Vector3D } from '../../models/game.models';
 
-type ScenarioLayout = 'isla' | 'sugar' | 'galaxia' | 'volcan';
+type ScenarioLayout = 'isla' | 'sugar' | 'parque' | 'bosque';
 
 export class BoardEngine {
   public tiles: BoardTile[] = [];
@@ -50,10 +50,10 @@ export class BoardEngine {
       this.generateIslaLayout();
     } else if (layout === 'sugar') {
       this.generateSugarLayout();
-    } else if (layout === 'galaxia') {
-      this.generateGalaxiaLayout();
+    } else if (layout === 'parque') {
+      this.generateParqueLayout();
     } else {
-      this.generateVolcanLayout();
+      this.generateBosqueLayout();
     }
 
     this.createPathConnections();
@@ -61,40 +61,19 @@ export class BoardEngine {
 
   private generateIslaLayout() {
     const pts: [number, number, number][] = [];
-    for (let i = 0; i < 14; i++) {
-      const t = i / 13;
-      pts.push([-21 + t * 42, 0.5 + Math.sin(t * Math.PI) * 0.8, 14]);
-    }
-    for (let i = 0; i < 8; i++) {
-      const t = i / 7;
-      pts.push([21, 0.5 + Math.sin(t * Math.PI) * 1.0, 14 - t * 14]);
-    }
-    for (let i = 0; i < 7; i++) {
-      const t = i / 6;
-      pts.push([21 - t * 21, 1.2 + Math.sin(t * Math.PI) * 1.4, 0]);
-    }
-    for (let i = 0; i < 7; i++) {
-      const t = i / 6;
-      pts.push([0 - t * 21, 1.2 + Math.sin(t * Math.PI) * 1.4, 0]);
-    }
-    for (let i = 0; i < 8; i++) {
-      const t = i / 7;
-      pts.push([-21, 0.5 + Math.sin(t * Math.PI) * 1.0, -t * 14]);
-    }
-    for (let i = 0; i < 8; i++) {
-      const t = i / 7;
-      pts.push([-21 + t * 42, 0.5 + Math.sin(t * Math.PI) * 0.8, -14]);
-    }
-    const total = Math.min(52, pts.length);
-    for (let i = 0; i < total; i++) {
+    for (let i = 0; i < 14; i++) pts.push([-21 + (i / 13) * 42, 0.5 + Math.sin((i / 13) * Math.PI) * 0.8, 14]);
+    for (let i = 0; i < 8; i++) pts.push([21, 0.5 + Math.sin((i / 7) * Math.PI) * 1.0, 14 - (i / 7) * 14]);
+    for (let i = 0; i < 7; i++) pts.push([21 - (i / 6) * 21, 1.2 + Math.sin((i / 6) * Math.PI) * 1.4, 0]);
+    for (let i = 0; i < 7; i++) pts.push([0 - (i / 6) * 21, 1.2 + Math.sin((i / 6) * Math.PI) * 1.4, 0]);
+    for (let i = 0; i < 8; i++) pts.push([-21, 0.5 + Math.sin((i / 7) * Math.PI) * 1.0, -(i / 7) * 14]);
+    for (let i = 0; i < 8; i++) pts.push([-21 + (i / 7) * 42, 0.5 + Math.sin((i / 7) * Math.PI) * 0.8, -14]);
+    for (let i = 0; i < Math.min(52, pts.length); i++) {
       this.addTile(pts[i][0], pts[i][1], pts[i][2], i);
     }
   }
 
   private generateSugarLayout() {
     const pts: [number, number, number][] = [];
-    const cx = 0;
-    const cz = 0;
     const rings = [
       { r: 20, start: 0, count: 16, dir: 1 },
       { r: 12, start: Math.PI / 8, count: 12, dir: -1 },
@@ -103,8 +82,8 @@ export class BoardEngine {
     for (const ring of rings) {
       for (let i = 0; i < ring.count; i++) {
         const angle = ring.start + ring.dir * (i / ring.count) * Math.PI * 2;
-        const x = cx + Math.cos(angle) * ring.r;
-        const z = cz + Math.sin(angle) * ring.r;
+        const x = Math.cos(angle) * ring.r;
+        const z = Math.sin(angle) * ring.r;
         const y = 0.5 + (ring.r / 25) * 0.5 + Math.sin(i * 0.8) * 0.3;
         pts.push([x, y, z]);
       }
@@ -114,63 +93,40 @@ export class BoardEngine {
     }
   }
 
-  private generateGalaxiaLayout() {
-    const pts: [number, number, number][] = [];
-
-    for (let i = 0; i < 13; i++) {
-      const t = i / 12;
-      pts.push([-18 + t * 36, 0.5 + Math.sin(t * Math.PI) * 0.6, 0]);
-    }
-    for (let i = 1; i < 8; i++) {
-      const t = i / 7;
-      pts.push([0, 0.5 + Math.sin(t * Math.PI) * 0.6, -t * 14]);
-    }
-    for (let i = 1; i < 8; i++) {
-      const t = i / 7;
-      pts.push([0, 0.5 + Math.sin(t * Math.PI) * 0.6, (7 - i + 1) * 2]);
-    }
-    for (let i = 1; i < 8; i++) {
-      const t = i / 7;
-      pts.push([t * 18, 0.8 + Math.sin(t * Math.PI) * 1.2, -14]);
-    }
-    for (let i = 1; i < 8; i++) {
-      const t = i / 7;
-      pts.push([-t * 18, 0.8 + Math.sin(t * Math.PI) * 1.2, -14]);
-    }
-    for (let i = 1; i < 10; i++) {
-      const t = i / 9;
-      pts.push([18, 0.5 + t * 0.3, -14 + t * 14]);
-    }
-    const total = Math.min(52, pts.length);
-    for (let i = 0; i < total; i++) {
-      this.addTile(pts[i][0], pts[i][1], pts[i][2], i);
-    }
+  private generateParqueLayout() {
+    const keypoints = [
+      new THREE.Vector3(-24, 0.65, -18), new THREE.Vector3(-14, 0.65, -18), new THREE.Vector3(-4, 0.75, -14),
+      new THREE.Vector3(6, 0.75, -14), new THREE.Vector3(16, 0.65, -18), new THREE.Vector3(26, 0.70, -16),
+      new THREE.Vector3(28, 0.85, -6), new THREE.Vector3(26, 1.10, 4), new THREE.Vector3(18, 1.30, 14),
+      new THREE.Vector3(8, 1.45, 18), new THREE.Vector3(-4, 1.50, 20), new THREE.Vector3(-16, 1.45, 20),
+      new THREE.Vector3(-26, 1.30, 16), new THREE.Vector3(-28, 1.00, 8), new THREE.Vector3(-26, 0.75, -2),
+      new THREE.Vector3(-18, 0.70, -6), new THREE.Vector3(-8, 0.75, -2), new THREE.Vector3(2, 0.80, 4),
+      new THREE.Vector3(12, 0.80, 2), new THREE.Vector3(20, 0.75, -4), new THREE.Vector3(14, 0.65, -10),
+      new THREE.Vector3(4, 0.65, -8), new THREE.Vector3(-6, 0.65, -8), new THREE.Vector3(-16, 0.65, -10),
+      new THREE.Vector3(-26, 0.65, -14),
+    ];
+    const curve = new THREE.CatmullRomCurve3(keypoints, true, 'catmullrom', 0.5);
+    const count = 52;
+    const points = curve.getSpacedPoints(count);
+    for (let i = 0; i < count; i++) this.addTile(points[i].x, points[i].y, points[i].z, i);
   }
 
-  private generateVolcanLayout() {
-    const pts: [number, number, number][] = [];
-    const levels = [
-      { z: -14, xStart: -18, xEnd: 18, y: 2.2, count: 13 },
-      { z: -7, xStart: 18, xEnd: 6, y: 1.5, count: 6 },
-      { z: 0, xStart: 6, xEnd: -6, y: 1.8, count: 6 },
-      { z: 0, xStart: -6, xEnd: -18, y: 1.5, count: 6 },
-      { z: 7, xStart: -18, xEnd: -6, y: 1.0, count: 6 },
-      { z: 7, xStart: -6, xEnd: 6, y: 1.3, count: 6 },
-      { z: 14, xStart: 6, xEnd: 18, y: 1.0, count: 6 },
-      { z: 14, xStart: 18, xEnd: -18, y: 0.6, count: 7 },
+  private generateBosqueLayout() {
+    const keypoints = [
+      new THREE.Vector3(-26, 0.65, 0), new THREE.Vector3(-22, 0.75, 10), new THREE.Vector3(-14, 0.90, 18),
+      new THREE.Vector3(-2, 1.25, 22), new THREE.Vector3(10, 1.40, 20), new THREE.Vector3(20, 1.20, 14),
+      new THREE.Vector3(26, 0.95, 6), new THREE.Vector3(26, 0.75, -4), new THREE.Vector3(20, 0.70, -12),
+      new THREE.Vector3(10, 0.70, -18), new THREE.Vector3(0, 0.75, -18), new THREE.Vector3(-10, 0.85, -14),
+      new THREE.Vector3(-16, 1.10, -6), new THREE.Vector3(-14, 1.35, 4), new THREE.Vector3(-6, 1.50, 10),
+      new THREE.Vector3(4, 1.40, 12), new THREE.Vector3(14, 1.15, 6), new THREE.Vector3(18, 0.85, -2),
+      new THREE.Vector3(14, 0.70, -10), new THREE.Vector3(4, 0.65, -14), new THREE.Vector3(-6, 0.65, -12),
+      new THREE.Vector3(-16, 0.70, -18), new THREE.Vector3(-24, 0.85, -22), new THREE.Vector3(-26, 1.05, -14),
+      new THREE.Vector3(-22, 0.90, -6),
     ];
-    for (const seg of levels) {
-      for (let i = 0; i < seg.count; i++) {
-        const t = i / (seg.count - 1);
-        const x = seg.xStart + (seg.xEnd - seg.xStart) * t;
-        const y = seg.y + Math.sin(t * Math.PI) * 0.5;
-        pts.push([x, y, seg.z]);
-      }
-    }
-    const total = Math.min(52, pts.length);
-    for (let i = 0; i < total; i++) {
-      this.addTile(pts[i][0], pts[i][1], pts[i][2], i);
-    }
+    const curve = new THREE.CatmullRomCurve3(keypoints, true, 'catmullrom', 0.5);
+    const count = 52;
+    const points = curve.getSpacedPoints(count);
+    for (let i = 0; i < count; i++) this.addTile(points[i].x, points[i].y, points[i].z, i);
   }
 
   private createTileMesh(type: TileType, pos: Vector3D, index: number): THREE.Mesh {
@@ -210,9 +166,9 @@ export class BoardEngine {
       icon = '🎁';
     } else if (type === 'star') {
       color = 0xf1c40f;
-      emissive = 0xf39c12;
+      emissive = 0xffd700;
       rimColor = 0xfffa65;
-      innerColor = 0xd4ac0d;
+      innerColor = 0xb7950b;
       badgeBorder = '#ffd700';
       badgeText = 'META';
       icon = '⭐';
@@ -231,21 +187,17 @@ export class BoardEngine {
     mesh.castShadow = true;
     mesh.receiveShadow = true;
 
-    const topPadGeo = new THREE.CylinderGeometry(1.0, 1.0, 0.08, 28);
-    const topPadMat = new THREE.MeshStandardMaterial({
-      color: innerColor,
-      emissive,
-      emissiveIntensity: 0.25,
-      roughness: 0.3,
-      metalness: 0.2,
-    });
-    const topPad = new THREE.Mesh(topPadGeo, topPadMat);
+    const topPad = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.0, 1.0, 0.08, 28),
+      new THREE.MeshStandardMaterial({ color: innerColor, emissive, emissiveIntensity: 0.25, roughness: 0.3, metalness: 0.2 })
+    );
     topPad.position.y = 0.23;
     mesh.add(topPad);
 
-    const ringGeo = new THREE.TorusGeometry(1.5, 0.08, 12, 36);
-    const ringMat = new THREE.MeshBasicMaterial({ color: rimColor });
-    const ring = new THREE.Mesh(ringGeo, ringMat);
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(1.5, 0.08, 12, 36),
+      new THREE.MeshBasicMaterial({ color: rimColor })
+    );
     ring.rotation.x = Math.PI / 2;
     ring.position.y = 0.2;
     mesh.add(ring);
@@ -272,8 +224,7 @@ export class BoardEngine {
     ctx.shadowBlur = 8;
     ctx.fillText(`${icon} ${badgeText}`, 128, 48);
 
-    const tex = new THREE.CanvasTexture(labelCanvas);
-    const iconMat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+    const iconMat = new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(labelCanvas), transparent: true, depthTest: false });
     const iconSprite = new THREE.Sprite(iconMat);
     iconSprite.position.set(0, 0.88, 0);
     iconSprite.scale.set(1.85, 0.7, 1);
@@ -284,24 +235,17 @@ export class BoardEngine {
 
   private createPathConnections() {
     const count = this.tiles.length;
-    for (let i = 0; i < count - 1; i++) {
+    for (let i = 0; i < count; i++) {
       const p1 = this.tiles[i].position;
-      const p2 = this.tiles[i + 1].position;
-
+      const p2 = this.tiles[(i + 1) % count].position;
       const curve = new THREE.LineCurve3(
         new THREE.Vector3(p1.x, p1.y + 0.08, p1.z),
         new THREE.Vector3(p2.x, p2.y + 0.08, p2.z)
       );
-
-      const tubeGeo = new THREE.TubeGeometry(curve, 8, 0.12, 6, false);
-      const tubeMat = new THREE.MeshStandardMaterial({
-        color: 0xffeaa7,
-        emissive: 0xfdcb6e,
-        emissiveIntensity: 0.55,
-        roughness: 0.25,
-      });
-
-      const tube = new THREE.Mesh(tubeGeo, tubeMat);
+      const tube = new THREE.Mesh(
+        new THREE.TubeGeometry(curve, 8, 0.12, 6, false),
+        new THREE.MeshStandardMaterial({ color: 0xffeaa7, emissive: 0xfdcb6e, emissiveIntensity: 0.55, roughness: 0.25 })
+      );
       this.boardGroup.add(tube);
     }
   }
@@ -311,32 +255,22 @@ export class BoardEngine {
     this.diceCanvas.width = 512;
     this.diceCanvas.height = 512;
     this.diceCtx = this.diceCanvas.getContext('2d')!;
-
     this.diceTexture = new THREE.CanvasTexture(this.diceCanvas);
     this.diceTexture.needsUpdate = true;
 
     this.diceMesh = new THREE.Group();
-
-    const mat = new THREE.MeshStandardMaterial({
-      map: this.diceTexture,
-      roughness: 0.15,
-      metalness: 0.1,
-    });
-
+    const mat = new THREE.MeshStandardMaterial({ map: this.diceTexture, roughness: 0.15, metalness: 0.1 });
     const boxGeo = new THREE.BoxGeometry(2.4, 2.4, 2.4);
-    const mats = [mat, mat, mat, mat, mat, mat];
-    this.diceCube = new THREE.Mesh(boxGeo, mats);
+    this.diceCube = new THREE.Mesh(boxGeo, [mat, mat, mat, mat, mat, mat]);
     this.diceCube.name = 'diceCube';
     this.diceCube.castShadow = true;
     this.diceMesh.add(this.diceCube);
 
-    const glowGeo = new THREE.SphereGeometry(2.0, 16, 16);
-    const glowMat = new THREE.MeshBasicMaterial({
-      color: 0xffd32a,
-      transparent: true,
-      opacity: 0.18,
-    });
-    this.diceMesh.add(new THREE.Mesh(glowGeo, glowMat));
+    const glow = new THREE.Mesh(
+      new THREE.SphereGeometry(2.0, 16, 16),
+      new THREE.MeshBasicMaterial({ color: 0xffd32a, transparent: true, opacity: 0.18 })
+    );
+    this.diceMesh.add(glow);
 
     const light = new THREE.PointLight(0xffd32a, 3.0, 8);
     this.diceMesh.add(light);
@@ -407,9 +341,7 @@ export class BoardEngine {
 
   public hideDice() {
     this.stopCycling();
-    if (this.diceMesh) {
-      this.diceMesh.visible = false;
-    }
+    if (this.diceMesh) this.diceMesh.visible = false;
   }
 
   private startCycling() {

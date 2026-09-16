@@ -1,0 +1,407 @@
+
+    <div class="title-screen-overlay" *ngIf="inTitleScreen">
+      <div class="ts-sound-toggle">
+        <button class="sound-mini-btn" (click)="toggleSound(); $event.stopPropagation()" id="btn-title-sound">
+          {{ isMuted ? '🔇 Sonido: OFF' : '🔊 Sonido: ON' }}
+        </button>
+      </div>
+
+      <div class="ts-content" (click)="pressStart()">
+        <div class="ts-badge">✨ EDICIÓN 3D MULTIJUGADOR ✨</div>
+        <div class="ts-logo-box">
+          <div class="ts-star-icon">🎲</div>
+          <h1 class="ts-title">Code<span class="ts-accent">Party</span> 3D</h1>
+        </div>
+        <p class="ts-subtitle">¡La Fiesta de Tablero 3D, Dados & Desafíos para 4 Jugadores!</p>
+
+        <div class="ts-start-box">
+          <button class="ts-arcade-btn" (click)="pressStart()" id="btn-arcade-start">
+            <span class="ts-play-triangle">▶</span> PRESS START
+          </button>
+          <div class="ts-blink-text">
+            <span>O PRESIONA <kbd class="ts-kbd">ENTER</kbd> PARA ENTRAR</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-container" *ngIf="!inTitleScreen">
+      <div class="stars-bg"></div>
+
+      <header class="game-header" style="animation: fadeInUp 0.6s ease both;">
+        <div class="logo-wrapper">
+          <span class="logo-icon">🎲</span>
+          <h1 class="game-title">Code<span class="title-accent">Party</span> 3D</h1>
+        </div>
+        <p class="subtitle">¡La Fiesta de Tablero 3D, Dados & Trivia Familiar!</p>
+      </header>
+
+      <nav class="main-nav" style="animation: fadeInUp 0.7s ease both;">
+        <button class="nav-btn" [class.active]="view === 'play'" (click)="view = 'play'" id="btn-nav-play">
+          🎮 Jugar
+        </button>
+        <button class="nav-btn" [class.active]="view === 'how'" (click)="view = 'how'" id="btn-nav-how">
+          📖 Cómo Jugar
+        </button>
+        <button class="nav-btn sound-nav-btn" (click)="toggleSound()" id="btn-nav-sound" [title]="isMuted ? 'Activar sonido' : 'Silenciar sonido'">
+          {{ isMuted ? '🔇 Sonido' : '🔊 Sonido' }}
+        </button>
+      </nav>
+
+      <main class="content-panel glass-panel" *ngIf="view === 'play'"
+            style="animation: bounce-in 0.5s cubic-bezier(0.34,1.56,0.64,1) both;">
+
+        <div class="card-switcher">
+          <button class="switcher-tab" [class.tab-active]="activeCard === 'crear'"
+                  (click)="setCard('crear')" id="card-crear">
+            <span class="tab-icon">✨</span>
+            <span class="tab-text">Crear Partida</span>
+          </button>
+          <button class="switcher-tab" [class.tab-active]="activeCard === 'unir'"
+                  (click)="setCard('unir')" id="card-unir">
+            <span class="tab-icon">🔗</span>
+            <span class="tab-text">Unirse a Sala</span>
+            <span class="tab-count-badge" *ngIf="salasActivas.length > 0">{{ salasActivas.length }}</span>
+          </button>
+        </div>
+        <div class="active-card-panel" *ngIf="activeCard === 'crear'">
+          <div class="input-group">
+            <label class="field-label">🕹️ Modo de juego</label>
+            <div class="mode-row">
+              <button class="mode-btn" [class.mode-active]="modoJuego === 'local'"
+                      (click)="modoJuego = 'local'" id="btn-modo-local"
+                      title="1 a 4 jugadores en este mismo PC (solitario contra bots o con amigos)">
+                🖥️ Mismo PC / Local
+              </button>
+              <button class="mode-btn" [class.mode-active]="modoJuego === 'lan'"
+                      (click)="setModoLan()" id="btn-modo-lan"
+                      title="Cada jugador entra desde su propio PC o celular con la misma Wi-Fi">
+                🌐 Red Local / Wi-Fi
+              </button>
+            </div>
+            <small class="field-hint" *ngIf="modoJuego === 'local'">
+              Juega tú solo contra bots de IA o con hasta 4 amigos en este mismo computador.
+            </small>
+            <small class="field-hint" *ngIf="modoJuego === 'lan'">
+              Crea la sala y comparte el enlace de abajo para que tus amigos se conecten desde sus celulares o PCs.
+            </small>
+          </div>
+          <div class="lan-share-box" *ngIf="modoJuego === 'lan'">
+            <div class="lan-share-content">
+              <span class="lan-share-icon">📡</span>
+              <div class="lan-share-text">
+                <span class="lan-share-title">Enlace para amigos o celulares en tu Wi-Fi:</span>
+                <code class="lan-url">{{ getShareUrl() }}</code>
+              </div>
+              <button type="button" class="btn-copy-ip" (click)="copiarEnlaceLan()" id="btn-copy-lan-link">
+                {{ linkCopiado ? '✅ ¡Copiado!' : '📋 Copiar Enlace' }}
+              </button>
+            </div>
+          </div>
+          <section class="profile-row" *ngIf="modoJuego === 'lan'" style="margin-top: 4px; margin-bottom: 8px;">
+            <div class="input-group name-group">
+              <label class="field-label name-label">👤 Tu nombre de anfitrión</label>
+              <input id="input-nickname" type="text" class="field-input name-input"
+                     [(ngModel)]="nickname"
+                     [class.input-invalid]="nicknameError"
+                     placeholder="Ej: StarHero99" maxlength="15"
+                     (input)="nicknameError = false" />
+              <span class="name-counter">{{ nickname.length }}/15</span>
+              <p class="name-error" *ngIf="nicknameError">⚠️ Escribe tu nombre para continuar</p>
+            </div>
+            <div class="input-group">
+              <label class="field-label">🎨 Color de tu personaje</label>
+              <div class="color-picker">
+                <button class="color-dot" *ngFor="let c of droneColors"
+                        [style.background]="c"
+                        [class.selected]="selectedColor === c"
+                        (click)="selectedColor = c"
+                        [title]="c">
+                </button>
+              </div>
+            </div>
+          </section>
+          <div class="local-config-container" *ngIf="modoJuego === 'local'">
+            <div class="presets-header">
+              <label class="field-label">👥 Participantes de la Partida (4 Jugadores)</label>
+              <div class="presets-row">
+                <button class="preset-btn" [class.preset-active]="getLocalHumanCount() === 1"
+                        (click)="setLocalPreset(1)">
+                  👤 1P + 3 Bots
+                </button>
+                <button class="preset-btn" [class.preset-active]="getLocalHumanCount() === 2"
+                        (click)="setLocalPreset(2)">
+                  👥 2P + 2 Bots
+                </button>
+                <button class="preset-btn" [class.preset-active]="getLocalHumanCount() === 3"
+                        (click)="setLocalPreset(3)">
+                  🧑‍🤝‍🧑 3P + 1 Bot
+                </button>
+                <button class="preset-btn" [class.preset-active]="getLocalHumanCount() === 4"
+                        (click)="setLocalPreset(4)">
+                  🎉 4P Humanos
+                </button>
+              </div>
+            </div>
+
+            <div class="slots-config-grid">
+              <div class="slot-edit-card" *ngFor="let s of localSlots"
+                   [class.slot-is-bot]="s.isBot"
+                   [class.slot-is-human]="!s.isBot">
+                <ng-container *ngIf="!s.isBot">
+                  <div class="sec-top">
+                    <span class="sec-badge">Slot {{ s.slot }} &bull; 👤 Humano</span>
+                    <button class="slot-toggle-btn btn-is-human" (click)="toggleSlotBot(s)" title="Cambiar a Bot">
+                      👤 Humano
+                    </button>
+                  </div>
+
+                  <div class="human-card-layout">
+                    <div class="human-controls-col">
+                      <div class="sec-field">
+                        <label class="sec-label">Nombre</label>
+                        <input type="text" class="field-input sec-input"
+                                [(ngModel)]="s.nickname"
+                                maxlength="12"
+                                placeholder="Nombre Jugador" />
+                      </div>
+
+                      <div class="sec-field">
+                        <label class="sec-label">Color</label>
+                        <div class="color-picker-mini">
+                          <button class="dot-mini" *ngFor="let col of droneColors"
+                                  [style.background]="col"
+                                  [class.dot-mini-selected]="s.color === col"
+                                  (click)="s.color = col">
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </ng-container>
+                <ng-container *ngIf="s.isBot">
+                  <div class="sec-top">
+                    <span class="sec-badge bot-badge">Slot {{ s.slot }} &bull; 🤖 CPU</span>
+                    <button class="slot-toggle-btn btn-is-bot" (click)="toggleSlotBot(s)" title="Cambiar a Humano">
+                      🤖 Bot CPU
+                    </button>
+                  </div>
+
+                  <div class="bot-card-layout">
+                    <div class="bot-icon-circle">🤖</div>
+                    <div class="bot-info-texts">
+                      <span class="bot-name-strong">{{ s.nickname }}</span>
+                      <span class="bot-desc-hint">⚡ Rival controlado por la IA automática</span>
+                    </div>
+                  </div>
+                </ng-container>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label class="field-label">🧠 Tema de programación</label>
+            <select id="select-tema" class="field-select" [(ngModel)]="temaSeleccionado">
+              <option *ngFor="let t of temasValidos" [value]="t">{{ t }}</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label class="field-label">⚡ Dificultad de preguntas</label>
+            <div class="difficulty-row">
+              <button class="diff-btn" *ngFor="let d of dificultades"
+                      [class.diff-active]="dificultad === d.value"
+                      (click)="dificultad = d.value"
+                      [id]="'btn-diff-' + d.value">
+                {{ d.emoji }} {{ d.label }}
+              </button>
+            </div>
+          </div>
+          <div class="victory-goals-config">
+            <label class="field-label">🏆 Condiciones de Victoria de la Partida</label>
+            <div class="goals-grid">
+              <div class="goal-item">
+                <div class="goal-header">
+                  <span class="goal-icon">⭐</span>
+                  <span class="goal-title">Meta de Estrellas</span>
+                </div>
+                <div class="goal-selector">
+                  <button type="button" class="goal-chip chip-star" *ngFor="let st of [1, 2, 3, 5]"
+                          [class.chip-active]="targetStars === st"
+                          (click)="targetStars = st"
+                          [id]="'chip-stars-' + st">
+                    {{ st }} ⭐
+                  </button>
+                </div>
+              </div>
+              <div class="goal-item">
+                <div class="goal-header">
+                  <span class="goal-icon">🪙</span>
+                  <span class="goal-title">Meta de Puntos</span>
+                </div>
+                <div class="goal-selector">
+                  <button type="button" class="goal-chip chip-coin" *ngFor="let pt of [50, 100, 150, 200]"
+                          [class.chip-active]="targetPoints === pt"
+                          (click)="targetPoints = pt"
+                          [id]="'chip-points-' + pt">
+                    {{ pt }} 🪙
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="victory-summary-badge">
+              🎯 <strong>Regla:</strong> ¡Gana el primer jugador en conseguir <strong>{{ targetStars }} ⭐ Estrellas</strong> O acumular <strong>{{ targetPoints }} 🪙 Monedas</strong>!
+            </div>
+          </div>
+
+          <button id="btn-crear-sala" class="btn-play w-full" (click)="crearSala()" [disabled]="loading">
+            {{ loading ? '⏳ Preparando...' : (modoJuego === 'local' ? '✨ Elegir Personajes en 3D ➔' : '🚀 Crear Sala y Elegir Personaje') }}
+          </button>
+        </div>
+        <div class="active-card-panel unir-panel" *ngIf="activeCard === 'unir'">
+          <div class="unir-profile-box">
+            <div class="profile-row" style="margin: 0;">
+              <div class="input-group name-group">
+                <label class="field-label name-label">👤 Tu nombre de jugador</label>
+                <input id="input-nickname-unir" type="text" class="field-input name-input"
+                       [(ngModel)]="nickname"
+                       [class.input-invalid]="nicknameError"
+                       placeholder="Ej: StarHero99" maxlength="15"
+                       (input)="nicknameError = false" />
+                <span class="name-counter">{{ nickname.length }}/15</span>
+                <p class="name-error" *ngIf="nicknameError">⚠️ Escribe tu nombre para unirte</p>
+              </div>
+              <div class="input-group">
+                <label class="field-label">🎨 Tu color de personaje</label>
+                <div class="color-picker">
+                  <button class="color-dot" *ngFor="let c of droneColors"
+                          [style.background]="c"
+                          [class.selected]="selectedColor === c"
+                          (click)="selectedColor = c"
+                          [title]="c">
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider" style="margin: 18px 0 14px;"></div>
+          <div class="active-rooms-section">
+            <div class="section-title-row">
+              <label class="field-label" style="font-size: 1.05rem; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+                <span>📡 Salas Abiertas en Espera</span>
+                <span class="rooms-badge-count">{{ salasActivas.length }}</span>
+              </label>
+              <button class="btn-refresh-mini" (click)="cargarSalasActivas()" title="Buscar salas disponibles" id="btn-refresh-salas">
+                <span [class.spin-icon]="cargandoSalas">🔄</span> Actualizar
+              </button>
+            </div>
+
+            <div class="rooms-list-grid" *ngIf="salasActivas.length > 0">
+              <div class="room-card-item" *ngFor="let s of salasActivas" [class.room-item-full]="s.jugadoresCount >= s.maxJugadores">
+                <div class="room-item-info">
+                  <div class="room-item-top">
+                    <span class="room-tema-badge">📚 {{ s.tema }}</span>
+                    <span class="room-code-badge">🔑 {{ s.codigo }}</span>
+                  </div>
+                  <div class="room-item-bottom">
+                    <span class="room-players-count">👥 {{ s.jugadoresCount }}/{{ s.maxJugadores }} Jugadores</span>
+                    <span class="room-status-dot">🟢 En espera</span>
+                  </div>
+                </div>
+                <button class="btn-join-room-direct" (click)="unirseConCodigoDirecto(s.codigo)"
+                        [disabled]="loading || s.jugadoresCount >= s.maxJugadores"
+                        [id]="'btn-join-' + s.codigo">
+                  {{ s.jugadoresCount >= s.maxJugadores ? '🚫 Sala Llena' : '🚀 Entrar' }}
+                </button>
+              </div>
+            </div>
+
+            <div class="no-rooms-box" *ngIf="salasActivas.length === 0 && !cargandoSalas">
+              <p class="no-rooms-text">No hay salas abiertas en espera ahora mismo.</p>
+              <small class="no-rooms-sub">Crea una en la pestaña <strong>"Crear Partida"</strong> o escribe un código manual abajo si tu amigo acaba de crearla.</small>
+            </div>
+
+            <div class="loading-rooms-box" *ngIf="cargandoSalas">
+              <span>⏳ Buscando salas en la red...</span>
+            </div>
+          </div>
+
+          <div class="divider" style="margin: 18px 0 14px;"></div>
+          <div class="manual-code-section">
+            <label class="field-label">🔑 O ingresa el código de 6 letras manualmente:</label>
+            <div class="manual-code-row">
+              <input id="input-codigo" type="text" class="field-input code-input"
+                     [(ngModel)]="codigoInput" placeholder="EJ: 5TC9Q5"
+                     maxlength="6" style="text-transform:uppercase;letter-spacing:4px;font-size:1.25rem;text-align:center;" />
+              <button id="btn-unirse-sala" class="btn-play btn-join-manual" (click)="unirseSala()" [disabled]="loading">
+                {{ loading ? '⏳...' : '🎮 Unirse' }}
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="error-banner" *ngIf="errorMessage" style="animation: bounce-in 0.3s ease both;">
+          ⚠️ {{ errorMessage }}
+        </div>
+      </main>
+
+      <main class="content-panel glass-panel how-panel" *ngIf="view === 'how'"
+            style="animation: bounce-in 0.5s cubic-bezier(0.34,1.56,0.64,1) both;">
+        <h2 class="how-title">📖 Cómo Jugar en CodeParty 3D</h2>
+
+        <div class="how-grid">
+          <div class="how-card">
+            <div class="how-icon">🎭</div>
+            <h3>4 Personajes Únicos</h3>
+            <ul class="controls-list">
+              <li>⭐ <strong>Estrellita:</strong> Giro veloz con estrellas mágicas</li>
+              <li>🍄 <strong>Hongito:</strong> Sombrero saltarín y esporas brillantes</li>
+              <li>💎 <strong>Cristalín:</strong> Octaedro flotante con prismas de luz</li>
+              <li>🚀 <strong>Cohete:</strong> Propulsores de plasma y llamaradas</li>
+            </ul>
+          </div>
+
+          <div class="how-card">
+            <div class="how-icon">🗺️</div>
+            <h3>4 Tableros Temáticos</h3>
+            <ul class="controls-list">
+              <li>🏝️ <strong>Isla Tropical:</strong> Palmeras, aguas cristalinas y brisa marina</li>
+              <li>🍰 <strong>Reino Dulce:</strong> Piruletas gigantes, caramelos y chocolate</li>
+              <li>🎪 <strong>Parque Mágico:</strong> Carpas de circo, rueda de la fortuna y globos</li>
+              <li>🍄 <strong>Bosque Encantado:</strong> Casas de hongos, flores gigantes y luciérnagas</li>
+            </ul>
+          </div>
+
+          <div class="how-card">
+            <div class="how-icon">🎲</div>
+            <h3>Mecánica de Tablero 3D</h3>
+            <ul class="controls-list">
+              <li>🎲 <strong>Tirar Dado:</strong> Presiona ESPACIO o el botón para lanzar</li>
+              <li>🔵 <strong>Azul (+10 pts) / 🔴 Roja (-5 pts)</strong></li>
+              <li>💡 <strong>Trivia:</strong> Pregunta con tiempo justo para pensar y ganar poderes</li>
+              <li>🎁 <strong>Regalo / ⭐ Estrella:</strong> Boost x2, Escudo y super puntos</li>
+            </ul>
+          </div>
+
+          <div class="how-card">
+            <div class="how-icon">🌐</div>
+            <h3>Multijugador LAN y Local</h3>
+            <ul class="controls-list">
+              <li>📡 <strong>Red Local (LAN/Wi-Fi):</strong> Cada jugador entra desde su PC o celular</li>
+              <li>🖥️ <strong>Mismo PC (Split Keyboard):</strong> 3 jugadores en 1 teclado</li>
+              <li>🤖 <strong>Bots CPU:</strong> Practica solo contra IA inteligente</li>
+              <li>⚡ <strong>Resiliente:</strong> Si se cae el internet, la red local no para</li>
+            </ul>
+          </div>
+        </div>
+
+        <button class="btn-play" style="margin-top:16px;" (click)="view = 'play'" id="btn-back-to-play">
+          🎮 ¡Vamos a Jugar!
+        </button>
+      </main>
+    </div>
+  

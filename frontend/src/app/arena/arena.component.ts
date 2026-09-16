@@ -41,288 +41,8 @@ export interface LocalPlayerState {
   selector: 'app-arena',
   standalone: true,
   imports: [CommonModule, HudComponent, QuestionModalComponent],
-  template: `
-    <div class="arena-wrapper">
-      <canvas #renderCanvas class="three-canvas"></canvas>
-
-      <app-hud
-        [nickname]="myNickname"
-        [playerColor]="myColor"
-        [score]="myScore"
-        [stars]="myStars"
-        [currentTile]="myTileIndex"
-        [currentRound]="roundNumber"
-        [totalRounds]="totalRounds"
-        [targetStars]="targetStars"
-        [targetPoints]="targetPoints"
-        [otherPlayers]="rankingPlayers"
-        [skillsReady]="skillsReady"
-        [notificationText]="notification"
-        [disconnectedPlayer]="disconnectedPlayer"
-        [characterEmoji]="myCharacterEmoji"
-        [isMuted]="isMuted"
-        [isPaused]="isGamePaused"
-        [isMyTurn]="isMyTurn"
-        [currentTurnNickname]="currentTurnNickname"
-        [isDiceRolling]="isDiceRolling"
-        [diceWaitingForHit]="diceWaitingForHit"
-        (rollDiceClick)="rollDice()"
-        (skillAction)="handleSkillAction($event)"
-        (toggleSoundClick)="toggleSound()"
-        (togglePauseClick)="togglePause()"
-        (zoomInClick)="zoomIn()"
-        (zoomOutClick)="zoomOut()"
-        (rotateLeftClick)="rotateLeft()"
-        (rotateRightClick)="rotateRight()"
-        (resetCameraClick)="resetCamera()"
-      ></app-hud>
-
-      <app-question-modal
-        *ngIf="activeQuestion"
-        [habilidad]="activeSkillRequested"
-        [pregunta]="activeQuestion"
-        (answeredEvent)="handleAnswerSubmitted($event)"
-      ></app-question-modal>
-
-      <div class="modal-backdrop" *ngIf="isGamePaused && !gameOverData">
-        <div class="pause-overlay glass-panel">
-          <div class="pause-badge">⏸️ PAUSA</div>
-          <h2 class="pause-title">Partida Pausada</h2>
-          <p class="pause-subtitle">Tómate un respiro o ajusta tus opciones de juego:</p>
-
-          <div class="pause-actions">
-            <button class="btn-pause-action btn-resume" (click)="togglePause()" id="btn-pause-resume">
-              ▶️ Continuar Partida
-            </button>
-            <button class="btn-pause-action btn-sound" (click)="toggleSound()" id="btn-pause-sound">
-              {{ isMuted ? '🔇 Activar Sonido' : '🔊 Silenciar Sonido' }}
-            </button>
-            <button class="btn-pause-action btn-menu" (click)="returnToHome()" id="btn-pause-exit">
-              🏠 Salir al Menú Principal
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-backdrop" *ngIf="gameOverData">
-        <div class="game-over-overlay glass-panel">
-          <div class="go-trophy">🏆</div>
-          <h1 class="go-title">{{ isWinner ? '¡Ganaste!' : 'Fin de Partida' }}</h1>
-          <div class="go-winner">{{ gameOverData.winnerNickname }}</div>
-
-          <div class="go-ranking">
-            <div class="gor-row" *ngFor="let r of gameOverData.ranking; let i = index">
-              <span class="gor-medal">{{ i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '#' + (i+1) }}</span>
-              <span class="gor-dot" [style.background]="r.color"></span>
-              <span class="gor-name">{{ r.nickname }}{{ r.isBot ? ' 🤖' : '' }}</span>
-              <span class="gor-pts">{{ r.score }} pts</span>
-            </div>
-          </div>
-
-          <div class="go-actions">
-            <button class="btn-play" (click)="returnToHome()" id="btn-go-home">🏠 Menú Principal</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `,
-  styles: [`
-    .arena-wrapper {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      touch-action: none;
-      user-select: none;
-    }
-
-    .three-canvas {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      display: block;
-      touch-action: none;
-    }
-
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0, 0, 0, 0.65);
-      backdrop-filter: blur(6px);
-      z-index: 100;
-      pointer-events: auto;
-    }
-
-    .game-over-overlay {
-      position: relative;
-      width: 90%;
-      max-width: 440px;
-      margin: auto;
-      padding: 36px 32px;
-      border-radius: 28px;
-      text-align: center;
-      background: rgba(15, 5, 29, 0.95);
-      backdrop-filter: blur(16px);
-      border: 2px solid rgba(255, 215, 0, 0.45) !important;
-      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
-      animation: bounce-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-    }
-
-    .go-trophy {
-      font-size: 4rem;
-      animation: float 2s ease-in-out infinite;
-      line-height: 1;
-      margin-bottom: 8px;
-    }
-
-    .go-title {
-      font-family: var(--font-title);
-      font-size: 2.2rem;
-      color: var(--color-primary);
-      text-shadow: 0 0 20px rgba(255,215,0,0.6);
-      margin-bottom: 6px;
-    }
-
-    .go-winner {
-      font-family: var(--font-text);
-      font-size: 1.3rem;
-      font-weight: 800;
-      color: #ffffff;
-      margin-bottom: 20px;
-      opacity: 0.9;
-    }
-
-    .go-ranking {
-      background: rgba(0,0,0,0.3);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .gor-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 1rem;
-    }
-
-    .gor-medal { font-size: 1.1rem; min-width: 28px; }
-
-    .gor-dot {
-      width: 11px; height: 11px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .gor-name { flex: 1; text-align: left; font-weight: 700; }
-
-    .gor-pts {
-      font-family: var(--font-cyber);
-      font-size: 0.9rem;
-      color: var(--color-primary);
-      font-weight: 700;
-    }
-
-    .go-actions { display: flex; gap: 12px; justify-content: center; }
-
-    .pause-overlay {
-      position: relative;
-      width: 90%;
-      max-width: 440px;
-      margin: auto;
-      text-align: center;
-      padding: 32px 28px;
-      border-radius: 24px;
-      background: rgba(15, 5, 29, 0.95);
-      backdrop-filter: blur(16px);
-      border: 2px solid rgba(255, 215, 0, 0.35);
-      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 32px rgba(255, 215, 0, 0.18);
-      animation: bounce-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-    }
-
-    .pause-badge {
-      font-family: var(--font-cyber);
-      font-size: 0.85rem;
-      letter-spacing: 2px;
-      color: var(--color-primary);
-      margin-bottom: 6px;
-    }
-
-    .pause-title {
-      font-family: var(--font-title);
-      font-size: 2rem;
-      color: #fff;
-      margin: 0 0 8px 0;
-      text-shadow: 0 2px 12px rgba(255, 215, 0, 0.3);
-    }
-
-    .pause-subtitle {
-      font-size: 0.88rem;
-      color: rgba(255, 255, 255, 0.65);
-      margin: 0 0 24px 0;
-    }
-
-    .pause-actions {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      width: 100%;
-    }
-
-    .btn-pause-action {
-      width: 100%;
-      padding: 13px 20px;
-      border-radius: 14px;
-      font-family: var(--font-text);
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      border: none;
-      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-
-      &:hover {
-        transform: translateY(-2px) scale(1.02);
-      }
-    }
-
-    .btn-resume {
-      background: linear-gradient(135deg, #00f5ff, #44cf6c);
-      color: #0d1117;
-      box-shadow: 0 4px 16px rgba(0, 245, 255, 0.35);
-    }
-
-    .btn-sound {
-      background: rgba(255, 255, 255, 0.12);
-      border: 1.5px solid rgba(255, 255, 255, 0.25);
-      color: #fff;
-      &:hover {
-        background: rgba(255, 255, 255, 0.2);
-        border-color: var(--color-primary);
-      }
-    }
-
-    .btn-menu {
-      background: rgba(255, 71, 87, 0.15);
-      border: 1.5px solid rgba(255, 71, 87, 0.35);
-      color: #ff8a96;
-      &:hover {
-        background: rgba(255, 71, 87, 0.25);
-        border-color: #ff4757;
-      }
-    }
-  `],
+  templateUrl: './arena.component.html',
+  styleUrl: './arena.component.scss',
 })
 export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('renderCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
@@ -1329,20 +1049,25 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
         if (tile.type === 'blue') {
           player.score += 10;
           this.arenaVfx.onBlueTileReward();
+          this.soundService.playCoinReward();
         } else if (tile.type === 'red') {
           player.score = Math.max(0, player.score - 5);
           this.arenaVfx.onRedTilePenalty();
+          this.soundService.playCoinPenalty();
         } else if (tile.type === 'star') {
           player.stars = (player.stars || 0) + 1;
           player.score += 30;
           this.arenaVfx.onStarObtained();
+          this.soundService.playStarCapture();
           this.showNotification(`⭐ ¡${player.nickname} consiguió una Estrella!`);
         } else if (tile.type === 'trivia') {
           const acierta = Math.random() > 0.35;
           if (acierta) {
             player.score += 15;
+            this.soundService.playCoinReward();
             this.showNotification(`💡 ¡${player.nickname} acertó la trivia! (+15 pts)`);
           } else {
+            this.soundService.playCoinPenalty();
             this.showNotification(`💡 ¡${player.nickname} falló la trivia!`);
           }
         } else if (tile.type === 'power') {
@@ -1350,6 +1075,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
           const p = powers[Math.floor(Math.random() * powers.length)];
           player.skillsReady[p] = true;
           this.arenaVfx.onBlueTileReward();
+          this.soundService.playCorrectAnswer();
         }
         char.updatePlayerBadge(player.nickname, player.score);
         this.updateLocalRanking();
@@ -1363,7 +1089,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
           player.score += 10;
           this.myScore = player.score;
           this.arenaVfx.onBlueTileReward();
-          this.soundService.playCorrectAnswer();
+          this.soundService.playCoinReward();
           this.showNotification(`🔵 ¡${player.nickname} cayó en Casilla Azul! +10 Monedas`);
           char.updatePlayerBadge(player.nickname, player.score);
           this.updateLocalRanking();
@@ -1377,7 +1103,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
           if (!player.isShieldActive) {
             player.score = Math.max(0, player.score - 5);
             this.myScore = player.score;
-            this.soundService.playWrongAnswer();
+            this.soundService.playCoinPenalty();
             this.showNotification(`🔴 ¡${player.nickname} cayó en Casilla Roja! -5 Monedas`);
           } else {
             player.isShieldActive = false;
@@ -1407,7 +1133,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
           this.myStars = player.stars;
           this.myScore = player.score;
           this.arenaVfx.onStarObtained();
-          this.soundService.playVictory();
+          this.soundService.playStarCapture();
           this.showNotification(`⭐ ¡${player.nickname} capturó una SUPER ESTRELLA! (+1 ⭐ / +30 pts)`);
           char.updatePlayerBadge(player.nickname, player.score);
           this.updateLocalRanking();
@@ -1425,7 +1151,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
       if (tile.type === 'blue') {
         this.myScore += 10;
         this.arenaVfx.onBlueTileReward();
-        this.soundService.playCorrectAnswer();
+        this.soundService.playCoinReward();
         this.showNotification('🔵 ¡Casilla Azul! +10 Monedas');
         this.myCharacter.updatePlayerBadge(this.myNickname, this.myScore);
         this.updateBoardRanking();
@@ -1443,7 +1169,7 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
         if (!this.isShieldActive) {
           delta = -5;
           this.myScore = Math.max(0, this.myScore - 5);
-          this.soundService.playWrongAnswer();
+          this.soundService.playCoinPenalty();
           this.showNotification('🔴 ¡Casilla Roja! -5 Monedas');
         } else {
           this.isShieldActive = false;

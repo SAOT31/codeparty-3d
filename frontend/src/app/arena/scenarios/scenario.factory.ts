@@ -1,11 +1,10 @@
 import * as THREE from 'three';
 import { IslaArcoirisScenario } from './isla-arcoiris';
-import { VolcanCodigoScenario } from './volcan-codigo';
-import { GalaxiaPixelScenario } from './galaxia-pixel';
-
 import { SugarKingdomScenario } from './sugar-kingdom';
+import { ParqueDiversionesScenario } from './parque-diversiones';
+import { BosqueEncantadoScenario } from './bosque-encantado';
 
-export type ScenarioId = 'isla' | 'volcan' | 'galaxia' | 'sugar';
+export type ScenarioId = 'isla' | 'sugar' | 'parque' | 'bosque';
 
 export interface ScenarioDef {
   id: ScenarioId;
@@ -31,29 +30,29 @@ export const SCENARIO_DEFS: ScenarioDef[] = [
     previewColor: '#ffd1dc',
   },
   {
-    id: 'galaxia',
-    name: 'Galaxia Pixel',
-    emoji: '🌌',
-    description: 'Parque espacial con estrellas titilantes y rieles cósmicos.',
-    previewColor: '#020818',
+    id: 'parque',
+    name: 'Parque Mágico',
+    emoji: '🎪',
+    description: 'Feria festiva con carpas de circo, ruedas de la fortuna y globos aerostáticos.',
+    previewColor: '#ffe082',
   },
   {
-    id: 'volcan',
-    name: 'Volcán del Código',
-    emoji: '🌋',
-    description: 'Circuito de roca volcánica con lava brillante y fuegos de neón.',
-    previewColor: '#1a0800',
+    id: 'bosque',
+    name: 'Bosque Encantado',
+    emoji: '🍄',
+    description: 'Valle mágico con casas de hongos, flores gigantes y luciérnagas brillantes.',
+    previewColor: '#52b788',
   },
 ];
 
 export class ScenarioFactory {
   static build(scene: THREE.Scene, scenarioId: ScenarioId): void {
     switch (scenarioId) {
-      case 'isla':    IslaArcoirisScenario.build(scene); break;
-      case 'volcan':  VolcanCodigoScenario.build(scene); break;
-      case 'galaxia': GalaxiaPixelScenario.build(scene); break;
-      case 'sugar':   SugarKingdomScenario.build(scene); break;
-      default:        IslaArcoirisScenario.build(scene); break;
+      case 'isla':   IslaArcoirisScenario.build(scene); break;
+      case 'sugar':  SugarKingdomScenario.build(scene); break;
+      case 'parque': ParqueDiversionesScenario.build(scene); break;
+      case 'bosque': BosqueEncantadoScenario.build(scene); break;
+      default:       IslaArcoirisScenario.build(scene); break;
     }
   }
 
