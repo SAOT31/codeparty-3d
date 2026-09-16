@@ -2,14 +2,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   padding: 0 4px;
   width: 100%;
 }
 
 .cs-title {
   font-family: var(--font-title);
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   color: #ffffff;
   margin: 0;
   text-align: center;
@@ -26,7 +26,7 @@
 .char-cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  gap: 12px;
   width: 100%;
   max-width: 820px;
 }
@@ -64,11 +64,12 @@
 }
 
 .char-canvas {
-  width: 130px;
-  height: 130px;
+  width: 120px;
+  height: 120px;
   border-radius: 12px;
   display: block;
   max-width: 100%;
+  pointer-events: none;
 }
 
 .char-info {
@@ -82,13 +83,13 @@
 
 .char-name {
   font-family: var(--font-title);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 800;
   color: #ffffff;
 }
 
 .char-desc {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: rgba(255, 255, 255, 0.55);
   line-height: 1.2;
 }
@@ -130,32 +131,35 @@
   flex-shrink: 0;
 }
 
-@media (max-width: 640px) {
-  .char-selector { gap: 10px; }
-  .cs-title { font-size: 1.3rem; }
+@media (max-width: 768px) {
+  .char-selector { gap: 8px; }
+  .cs-title { font-size: 1.2rem; }
+  .cs-sub { font-size: 0.75rem; }
   .char-cards {
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: 6px;
   }
   .char-card {
-    padding: 8px 6px;
-    border-radius: 14px;
-    gap: 4px;
+    padding: 6px 4px;
+    border-radius: 12px;
+    gap: 3px;
   }
   .char-canvas {
-    width: 90px;
-    height: 90px;
+    width: 68px !important;
+    height: 68px !important;
   }
-  .char-name { font-size: 0.82rem; }
+  .char-name { font-size: 0.78rem; }
   .char-desc {
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
   .char-taken, .char-selected-badge {
-    font-size: 0.62rem;
-    padding: 1px 6px;
+    font-size: 0.6rem;
+    padding: 1px 5px;
+    margin-top: 1px;
   }
+  .char-owner { font-size: 0.62rem; }
 }

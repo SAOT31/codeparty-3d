@@ -9,7 +9,7 @@
 
 .sv-title {
   font-family: var(--font-title);
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   color: #ffffff;
   margin: 0;
   text-align: center;
@@ -165,23 +165,28 @@
   border: 1.5px solid rgba(255,215,0,0.3);
 }
 
-@media (max-width: 640px) {
-  .sv-title { font-size: 1.3rem; }
+@media (max-width: 768px) {
+  .scenario-vote { gap: 8px; }
+  .sv-title { font-size: 1.2rem; }
+  .sv-sub { font-size: 0.72rem; }
   .sv-cards {
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: 6px;
   }
   .sv-card {
-    padding: 10px 8px;
-    border-radius: 14px;
+    padding: 8px 6px;
+    border-radius: 12px;
   }
-  .sv-emoji { font-size: 1.8rem; }
-  .sv-name { font-size: 0.82rem; }
+  .sv-emoji { font-size: 1.5rem; }
+  .sv-name { font-size: 0.8rem; }
   .sv-desc {
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+  .sv-votes-count { font-size: 0.72rem; }
+  .sv-vote-num { font-size: 0.9rem; }
+  .sv-my-vote { font-size: 0.62rem; padding: 1px 6px; }
 }
