@@ -63,26 +63,20 @@ export class HudComponent {
 
   onRollDiceTrigger(event: Event) {
     if (event) {
-      event.preventDefault();
       event.stopPropagation();
     }
     const now = Date.now();
-    if (now - this.lastRollTrigger < 250) return;
+    if (now - this.lastRollTrigger < 200) return;
     this.lastRollTrigger = now;
     this.rollDiceClick.emit();
   }
 
-  onSkillClick(habilidad: Habilidad) {
-    this.skillAction.emit(habilidad);
-  }
-
-  onSkillTouch(habilidad: Habilidad, event: TouchEvent) {
+  onSkillTrigger(habilidad: Habilidad, event: Event) {
     if (event) {
-      event.preventDefault();
       event.stopPropagation();
     }
     const now = Date.now();
-    if (now - this.lastSkillTrigger < 250) return;
+    if (now - this.lastSkillTrigger < 200) return;
     this.lastSkillTrigger = now;
     this.skillAction.emit(habilidad);
   }

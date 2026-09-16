@@ -104,10 +104,10 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
   private wheelHandler: ((e: WheelEvent) => void) | null = null;
   private mouseDownHandler: ((e: MouseEvent) => void) | null = null;
   private mouseMoveHandler: ((e: MouseEvent) => void) | null = null;
-  private mouseUpHandler: (() => void) | null = null;
+  private mouseUpHandler: ((e: MouseEvent) => void) | null = null;
   private touchStartHandler: ((e: TouchEvent) => void) | null = null;
   private touchMoveHandler: ((e: TouchEvent) => void) | null = null;
-  private touchEndHandler: (() => void) | null = null;
+  private touchEndHandler: ((e: TouchEvent) => void) | null = null;
   private isBoostActive = false;
   private isShieldActive = false;
   private scenarioId: ScenarioId = 'isla';
@@ -256,6 +256,10 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
     let isDragging = false;
     let prevX = 0;
     let prevY = 0;
+    let mouseStartX = 0;
+    let mouseStartY = 0;
+    let mouseStartTime = 0;
+    let hasMouseMovedSignificantly = false;
 
     this.mouseDownHandler = (e: MouseEvent) => {
       if (this.activeQuestion || this.isGamePaused) return;
@@ -263,6 +267,10 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
         isDragging = true;
         prevX = e.clientX;
         prevY = e.clientY;
+        mouseStartX = e.clientX;
+        mouseStartY = e.clientY;
+        mouseStartTime = Date.now();
+        hasMouseMovedSignificantly = false;
       }
     };
 
@@ -270,12 +278,23 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
       if (!isDragging || this.activeQuestion || this.isGamePaused) return;
       const deltaX = e.clientX - prevX;
       const deltaY = e.clientY - prevY;
+      if (Math.hypot(deltaX, deltaY) > 5) {
+        hasMouseMovedSignificantly = true;
+      }
       prevX = e.clientX;
       prevY = e.clientY;
       this.cameraController?.rotateOrbit(-deltaX * 0.007, deltaY * 0.004);
     };
 
-    this.mouseUpHandler = () => {
+    this.mouseUpHandler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isHudElement = target && target.closest('.hud-circle-btn, .btn-roll-dice, .skill-btn, .btn-pause-action, .close-mobile-btn, .ranking-panel, .rules-panel');
+      if (e.button === 0 && !hasMouseMovedSignificantly && !isHudElement) {
+        const elapsed = Date.now() - mouseStartTime;
+        if (elapsed < 350 && this.isMyTurn && !this.activeQuestion && !this.isGamePaused) {
+          this.rollDice();
+        }
+      }
       isDragging = false;
     };
 
@@ -286,7 +305,9 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
     let isTouchDragging = false;
     let touchStartX = 0;
     let touchStartY = 0;
+    let touchStartTime = 0;
     let touchStartDist = 0;
+    let hasTouchMovedSignificantly = false;
 
     this.touchStartHandler = (e: TouchEvent) => {
       if (this.activeQuestion || this.isGamePaused) return;
@@ -294,8 +315,11 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
         isTouchDragging = true;
         touchStartX = e.touches[0].clientX;
         touchStartY = e.touches[0].clientY;
+        touchStartTime = Date.now();
+        hasTouchMovedSignificantly = false;
       } else if (e.touches.length >= 2) {
         isTouchDragging = false;
+        hasTouchMovedSignificantly = true;
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         touchStartDist = Math.hypot(dx, dy);
@@ -309,6 +333,9 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
         const currentY = e.touches[0].clientY;
         const deltaX = currentX - touchStartX;
         const deltaY = currentY - touchStartY;
+        if (Math.hypot(deltaX, deltaY) > 8) {
+          hasTouchMovedSignificantly = true;
+        }
         touchStartX = currentX;
         touchStartY = currentY;
         this.cameraController?.rotateOrbit(-deltaX * 0.009, deltaY * 0.005);
@@ -322,7 +349,15 @@ export class ArenaComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     };
 
-    this.touchEndHandler = () => {
+    this.touchEndHandler = (e: TouchEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isHudElement = target && target.closest('.hud-circle-btn, .btn-roll-dice, .skill-btn, .btn-pause-action, .close-mobile-btn, .ranking-panel, .rules-panel');
+      if (!hasTouchMovedSignificantly && !isHudElement) {
+        const elapsed = Date.now() - touchStartTime;
+        if (elapsed < 400 && this.isMyTurn && !this.activeQuestion && !this.isGamePaused) {
+          this.rollDice();
+        }
+      }
       isTouchDragging = false;
       touchStartDist = 0;
     };

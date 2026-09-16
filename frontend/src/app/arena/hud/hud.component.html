@@ -1,167 +1,173 @@
+<div class="hud-container">
+  <div class="top-bar-player glass-panel">
+    <div class="player-id">
+      <span class="char-avatar">{{ characterEmoji }}</span>
+      <span class="drone-ball" [style.background]="playerColor"></span>
+      <span class="player-name">{{ nickname }}</span>
+    </div>
 
-    <div class="hud-container">
-      <div class="top-bar-player glass-panel">
-        <div class="player-id">
-          <span class="char-avatar">{{ characterEmoji }}</span>
-          <span class="drone-ball" [style.background]="playerColor"></span>
-          <span class="player-name">{{ nickname }}</span>
-        </div>
+    <div class="board-badge star-badge" [title]="'Tus Estrellas (Meta: ' + targetStars + ' ⭐)'">
+      <span class="badge-icon">⭐</span>
+      <span class="badge-val">{{ stars }}/{{ targetStars }}</span>
+    </div>
 
-        <div class="board-badge star-badge" [title]="'Tus Estrellas (Meta: ' + targetStars + ' ⭐)'">
-          <span class="badge-icon">⭐</span>
-          <span class="badge-val">{{ stars }}/{{ targetStars }}</span>
-        </div>
+    <div class="board-badge coin-badge" [title]="'Tus Puntos (Meta: ' + targetPoints + ' 🪙)'">
+      <span class="badge-icon">🪙</span>
+      <span class="badge-val">{{ score }}/{{ targetPoints }}</span>
+    </div>
 
-        <div class="board-badge coin-badge" [title]="'Tus Puntos (Meta: ' + targetPoints + ' 🪙)'">
-          <span class="badge-icon">🪙</span>
-          <span class="badge-val">{{ score }}/{{ targetPoints }}</span>
-        </div>
+    <div class="board-badge round-badge hide-on-mobile" title="Ronda de juego">
+      <span class="badge-icon">🏁</span>
+      <span class="badge-val">Ronda {{ currentRound }}</span>
+    </div>
 
-        <div class="board-badge round-badge" title="Ronda de juego">
-          <span class="badge-icon">🏁</span>
-          <span class="badge-val">Ronda {{ currentRound }}</span>
-        </div>
+    <div class="board-badge tile-badge hide-on-mobile hide-on-xs" title="Tu posición en el tablero">
+      <span class="badge-icon">📍</span>
+      <span class="badge-val">{{ (currentTile % 52) + 1 }}/52</span>
+    </div>
+  </div>
 
-        <div class="board-badge tile-badge hide-on-xs" title="Tu posición en el tablero">
-          <span class="badge-icon">📍</span>
-          <span class="badge-val">{{ (currentTile % 52) + 1 }}/52</span>
-        </div>
-      </div>
-      <div class="top-bar-actions glass-panel">
-        <button class="hud-circle-btn hide-on-mobile" (click)="rotateLeftClick.emit()" title="Girar cámara a la izquierda (↺)" id="btn-hud-rot-left">
-          ↺
-        </button>
-        <button class="hud-circle-btn hide-on-mobile" (click)="rotateRightClick.emit()" title="Girar cámara a la derecha (↻)" id="btn-hud-rot-right">
-          ↻
-        </button>
-        <button class="hud-circle-btn" (click)="resetCameraClick.emit()" title="Restablecer vista de cámara (🎯)" id="btn-hud-reset-cam">
-          🎯
-        </button>
-        <button class="hud-circle-btn hide-on-xs hide-on-mobile" (click)="zoomInClick.emit()" title="Acercar cámara" id="btn-hud-zoom-in">
-          ➕
-        </button>
-        <button class="hud-circle-btn hide-on-xs hide-on-mobile" (click)="zoomOutClick.emit()" title="Alejar cámara" id="btn-hud-zoom-out">
-          ➖
-        </button>
-        <button class="hud-circle-btn" (click)="toggleSoundClick.emit()" [title]="isMuted ? 'Activar sonido' : 'Silenciar sonido'" id="btn-hud-sound">
-          {{ isMuted ? '🔇' : '🔊' }}
-        </button>
-        <button class="hud-circle-btn" (click)="toggleLeaderboard()" title="Ver ranking" id="btn-hud-toggle-ranks">
-          🏆
-        </button>
-        <button class="hud-circle-btn" (click)="toggleRules()" title="Ver reglas" id="btn-hud-toggle-rules">
-          ❓
-        </button>
-        <button class="hud-circle-btn hud-pause-btn" (click)="togglePauseClick.emit()" [title]="isPaused ? 'Reanudar' : 'Pausar'" id="btn-hud-pause">
-          {{ isPaused ? '▶️' : '⏸️' }}
-        </button>
-      </div>
-      <div class="turn-indicator glass-panel" [class.turn-indicator-active]="isMyTurn">
-        <span class="turn-pulse" [class.turn-mine]="isMyTurn"></span>
-        <span class="turn-text">{{ isMyTurn ? '👉 ¡TU TURNO DE TIRAR EL DADO!' : '⏳ Turno de ' + currentTurnNickname }}</span>
-      </div>
-      <div class="ranking-panel glass-panel" [class.ranking-mobile-open]="showLeaderboard">
-        <div class="ranking-header">
-          <div class="ranking-title">🏆 Clasificación</div>
-          <button class="close-mobile-btn show-on-mobile" (click)="showLeaderboard = false">✕</button>
-        </div>
-        <div class="ranking-list">
-          <div class="rank-row" *ngFor="let p of otherPlayers; let i = index"
-               [class.rank-disconnected]="!p.connected">
-            <span class="rank-medal">{{ i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '#' + (i+1) }}</span>
-            <span class="rank-dot" [style.background]="p.color"></span>
-            <span class="rank-name">{{ p.nickname }}{{ p.isBot ? ' 🤖' : '' }}</span>
-            <span class="rank-stars" *ngIf="p.stars">⭐{{ p.stars }}</span>
-            <span class="rank-pts">🪙 {{ p.score }}</span>
-            <span class="rank-offline" *ngIf="!p.connected && !p.isBot" title="Desconectado">📡</span>
-          </div>
-        </div>
-      </div>
-      <div class="rules-panel glass-panel" [class.rules-panel-open]="showRules">
-        <div class="rules-header">
-          <span class="rules-title">🎲 GUÍA DEL TABLERO</span>
-          <button class="close-mobile-btn" (click)="showRules = false">✕</button>
-        </div>
-        <div class="rules-items">
-          <div class="rules-row">
-            <span class="tile-pill pill-blue">🔵 +10</span>
-            <span class="rules-text"><strong>Azul:</strong> +10 puntos</span>
-          </div>
-          <div class="rules-row">
-            <span class="tile-pill pill-red">🔴 -5</span>
-            <span class="rules-text"><strong>Roja:</strong> -5 puntos</span>
-          </div>
-          <div class="rules-row">
-            <span class="tile-pill pill-trivia">💡 TRIVIA</span>
-            <span class="rules-text"><strong>Trivia:</strong> +20 pts y poder</span>
-          </div>
-          <div class="rules-row">
-            <span class="tile-pill pill-power">🎁 PODER</span>
-            <span class="rules-text"><strong>Poder:</strong> Doble Dado / Escudo</span>
-          </div>
-          <div class="rules-row">
-            <span class="tile-pill pill-star">⭐ META</span>
-            <span class="rules-text"><strong>Estrella:</strong> +30 pts</span>
-          </div>
-        </div>
-        <div class="rules-footer">
-          <div class="ctrl-chip"><kbd>ESPACIO</kbd> Dado</div>
-          <div class="ctrl-chip"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Poderes</div>
-          <div class="ctrl-chip"><kbd>Táctil / Arrastrar</kbd> Cámara</div>
-        </div>
-      </div>
-      <div class="notif-area" *ngIf="notificationText">
-        <div class="notif-bubble">{{ notificationText }}</div>
-      </div>
-      <div class="disconnect-alert glass-panel" *ngIf="disconnectedPlayer">
-        📡 <strong>{{ disconnectedPlayer }}</strong> se desconectó — la partida continúa
-      </div>
-      <div class="dice-turn-panel" *ngIf="isMyTurn">
-        <button class="btn-roll-dice"
-                [class.btn-roll-waiting]="diceWaitingForHit"
-                (click)="onRollDiceTrigger($event)"
-                (touchstart)="onRollDiceTrigger($event)"
-                id="btn-hud-roll-dice">
-          <span class="dice-emoji">{{ diceWaitingForHit ? '🛑' : '🎲' }}</span>
-          <div class="dice-texts">
-            <span class="dice-lbl">{{ diceWaitingForHit ? '¡DETENER DADO!' : '¡LANZAR DADO!' }}</span>
-            <span class="dice-sub">(Toca aquí o pulsa ESPACIO)</span>
-          </div>
-        </button>
-      </div>
-      <div class="skills-bar">
-        <button class="skill-btn" id="btn-skill-boost"
-                [class.skill-ready]="skillsReady.boost"
-                [class.skill-locked]="!skillsReady.boost"
-                (click)="onSkillClick('boost')"
-                (touchstart)="onSkillTouch('boost', $event)">
-          <div class="skill-key hide-on-mobile">1</div>
-          <div class="skill-icon">🚀</div>
-          <div class="skill-name">DOBLE DADO</div>
-          <div class="skill-status">{{ skillsReady.boost ? '¡Listo!' : 'Vacío 🎁' }}</div>
-        </button>
+  <div class="top-bar-actions glass-panel">
+    <button class="hud-circle-btn hide-on-mobile" (click)="rotateLeftClick.emit()" title="Girar cámara a la izquierda (↺)" id="btn-hud-rot-left">
+      ↺
+    </button>
+    <button class="hud-circle-btn hide-on-mobile" (click)="rotateRightClick.emit()" title="Girar cámara a la derecha (↻)" id="btn-hud-rot-right">
+      ↻
+    </button>
+    <button class="hud-circle-btn hide-on-mobile" (click)="resetCameraClick.emit()" title="Restablecer vista de cámara (🎯)" id="btn-hud-reset-cam">
+      🎯
+    </button>
+    <button class="hud-circle-btn hide-on-xs hide-on-mobile" (click)="zoomInClick.emit()" title="Acercar cámara" id="btn-hud-zoom-in">
+      ➕
+    </button>
+    <button class="hud-circle-btn hide-on-xs hide-on-mobile" (click)="zoomOutClick.emit()" title="Alejar cámara" id="btn-hud-zoom-out">
+      ➖
+    </button>
+    <button class="hud-circle-btn" (click)="toggleSoundClick.emit()" [title]="isMuted ? 'Activar sonido' : 'Silenciar sonido'" id="btn-hud-sound">
+      {{ isMuted ? '🔇' : '🔊' }}
+    </button>
+    <button class="hud-circle-btn" (click)="toggleLeaderboard()" title="Ver ranking" id="btn-hud-toggle-ranks">
+      🏆
+    </button>
+    <button class="hud-circle-btn" (click)="toggleRules()" title="Ver reglas" id="btn-hud-toggle-rules">
+      ❓
+    </button>
+    <button class="hud-circle-btn hud-pause-btn" (click)="togglePauseClick.emit()" [title]="isPaused ? 'Reanudar' : 'Pausar'" id="btn-hud-pause">
+      {{ isPaused ? '▶️' : '⏸️' }}
+    </button>
+  </div>
 
-        <button class="skill-btn" id="btn-skill-shield"
-                [class.skill-ready]="skillsReady.shield"
-                [class.skill-locked]="!skillsReady.shield"
-                (click)="onSkillClick('shield')"
-                (touchstart)="onSkillTouch('shield', $event)">
-          <div class="skill-key hide-on-mobile">2</div>
-          <div class="skill-icon">🛡️</div>
-          <div class="skill-name">ESCUDO</div>
-          <div class="skill-status">{{ skillsReady.shield ? '¡Listo!' : 'Vacío 🎁' }}</div>
-        </button>
+  <div class="turn-indicator glass-panel" [class.turn-indicator-active]="isMyTurn">
+    <span class="turn-pulse" [class.turn-mine]="isMyTurn"></span>
+    <span class="turn-text">{{ isMyTurn ? '👉 ¡TU TURNO DE TIRAR EL DADO!' : '⏳ Turno de ' + currentTurnNickname }}</span>
+  </div>
 
-        <button class="skill-btn" id="btn-skill-attack"
-                [class.skill-ready]="skillsReady.attack"
-                [class.skill-locked]="!skillsReady.attack"
-                (click)="onSkillClick('attack')"
-                (touchstart)="onSkillTouch('attack', $event)">
-          <div class="skill-key hide-on-mobile">3</div>
-          <div class="skill-icon">🌟</div>
-          <div class="skill-name">BOLSA MONEDAS</div>
-          <div class="skill-status">{{ skillsReady.attack ? '¡Listo!' : 'Vacío 🎁' }}</div>
-        </button>
+  <div class="ranking-panel glass-panel" [class.ranking-mobile-open]="showLeaderboard">
+    <div class="ranking-header">
+      <div class="ranking-title">🏆 Clasificación</div>
+      <button class="close-mobile-btn show-on-mobile" (click)="showLeaderboard = false">✕</button>
+    </div>
+    <div class="ranking-list">
+      <div class="rank-row" *ngFor="let p of otherPlayers; let i = index"
+           [class.rank-disconnected]="!p.connected">
+        <span class="rank-medal">{{ i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '#' + (i+1) }}</span>
+        <span class="rank-dot" [style.background]="p.color"></span>
+        <span class="rank-name">{{ p.nickname }}{{ p.isBot ? ' 🤖' : '' }}</span>
+        <span class="rank-stars" *ngIf="p.stars">⭐{{ p.stars }}</span>
+        <span class="rank-pts">🪙 {{ p.score }}</span>
+        <span class="rank-offline" *ngIf="!p.connected && !p.isBot" title="Desconectado">📡</span>
       </div>
     </div>
-  
+  </div>
+
+  <div class="rules-panel glass-panel" [class.rules-panel-open]="showRules">
+    <div class="rules-header">
+      <span class="rules-title">🎲 GUÍA DEL TABLERO</span>
+      <button class="close-mobile-btn" (click)="showRules = false">✕</button>
+    </div>
+    <div class="rules-items">
+      <div class="rules-row">
+        <span class="tile-pill pill-blue">🔵 +10</span>
+        <span class="rules-text"><strong>Azul:</strong> +10 puntos</span>
+      </div>
+      <div class="rules-row">
+        <span class="tile-pill pill-red">🔴 -5</span>
+        <span class="rules-text"><strong>Roja:</strong> -5 puntos</span>
+      </div>
+      <div class="rules-row">
+        <span class="tile-pill pill-trivia">💡 TRIVIA</span>
+        <span class="rules-text"><strong>Trivia:</strong> +20 pts y poder</span>
+      </div>
+      <div class="rules-row">
+        <span class="tile-pill pill-power">🎁 PODER</span>
+        <span class="rules-text"><strong>Poder:</strong> Doble Dado / Escudo</span>
+      </div>
+      <div class="rules-row">
+        <span class="tile-pill pill-star">⭐ META</span>
+        <span class="rules-text"><strong>Estrella:</strong> +30 pts</span>
+      </div>
+    </div>
+    <div class="rules-footer">
+      <div class="ctrl-chip"><kbd>ESPACIO / Tocar</kbd> Dado</div>
+      <div class="ctrl-chip"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Poderes</div>
+      <div class="ctrl-chip"><kbd>Arrastrar</kbd> Cámara</div>
+    </div>
+  </div>
+
+  <div class="notif-area" *ngIf="notificationText">
+    <div class="notif-bubble">{{ notificationText }}</div>
+  </div>
+
+  <div class="disconnect-alert glass-panel" *ngIf="disconnectedPlayer">
+    📡 <strong>{{ disconnectedPlayer }}</strong> se desconectó — la partida continúa
+  </div>
+
+  <div class="dice-turn-panel" *ngIf="isMyTurn">
+    <button class="btn-roll-dice"
+            [class.btn-roll-waiting]="diceWaitingForHit"
+            (pointerdown)="onRollDiceTrigger($event)"
+            (click)="onRollDiceTrigger($event)"
+            id="btn-hud-roll-dice">
+      <span class="dice-emoji">{{ diceWaitingForHit ? '🛑' : '🎲' }}</span>
+      <div class="dice-texts">
+        <span class="dice-lbl">{{ diceWaitingForHit ? '¡DETENER DADO!' : '¡LANZAR DADO!' }}</span>
+        <span class="dice-sub">(Toca aquí o en la pantalla)</span>
+      </div>
+    </button>
+  </div>
+
+  <div class="skills-bar">
+    <button class="skill-btn" id="btn-skill-boost"
+            [class.skill-ready]="skillsReady.boost"
+            [class.skill-locked]="!skillsReady.boost"
+            (pointerdown)="onSkillTrigger('boost', $event)"
+            (click)="onSkillTrigger('boost', $event)">
+      <div class="skill-key hide-on-mobile">1</div>
+      <div class="skill-icon">🚀</div>
+      <div class="skill-name">DOBLE DADO</div>
+      <div class="skill-status">{{ skillsReady.boost ? '¡Listo!' : 'Vacío 🎁' }}</div>
+    </button>
+
+    <button class="skill-btn" id="btn-skill-shield"
+            [class.skill-ready]="skillsReady.shield"
+            [class.skill-locked]="!skillsReady.shield"
+            (pointerdown)="onSkillTrigger('shield', $event)"
+            (click)="onSkillTrigger('shield', $event)">
+      <div class="skill-key hide-on-mobile">2</div>
+      <div class="skill-icon">🛡️</div>
+      <div class="skill-name">ESCUDO</div>
+      <div class="skill-status">{{ skillsReady.shield ? '¡Listo!' : 'Vacío 🎁' }}</div>
+    </button>
+
+    <button class="skill-btn" id="btn-skill-attack"
+            [class.skill-ready]="skillsReady.attack"
+            [class.skill-locked]="!skillsReady.attack"
+            (pointerdown)="onSkillTrigger('attack', $event)"
+            (click)="onSkillTrigger('attack', $event)">
+      <div class="skill-key hide-on-mobile">3</div>
+      <div class="skill-icon">🌟</div>
+      <div class="skill-name">BOLSA MONEDAS</div>
+      <div class="skill-status">{{ skillsReady.attack ? '¡Listo!' : 'Vacío 🎁' }}</div>
+    </button>
+  </div>
+</div>
