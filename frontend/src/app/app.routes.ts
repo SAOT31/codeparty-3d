@@ -1,12 +1,18 @@
 import { Routes } from '@angular/router';
-import { HomeComponent } from './home/home.component';
-import { LobbyComponent } from './lobby/lobby.component';
-import { ArenaComponent } from './arena/arena.component';
 
 export const routes: Routes = [
-  { path: '', component: HomeComponent },
-  { path: 'lobby/:codigo', component: LobbyComponent },
-  { path: 'tablero/:codigo', component: ArenaComponent },
+  {
+    path: '',
+    loadComponent: () => import('./home/home.component').then(m => m.HomeComponent),
+  },
+  {
+    path: 'lobby/:codigo',
+    loadComponent: () => import('./lobby/lobby.component').then(m => m.LobbyComponent),
+  },
+  {
+    path: 'tablero/:codigo',
+    loadComponent: () => import('./arena/arena.component').then(m => m.ArenaComponent),
+  },
   { path: 'arena/:codigo', redirectTo: 'tablero/:codigo' },
   { path: '**', redirectTo: '' },
 ];

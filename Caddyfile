@@ -1,4 +1,6 @@
 codeparty3d.andrescortes.dev {
+    encode gzip zstd
+
     handle /socket.io/* {
         reverse_proxy backend:3000
     }
@@ -17,6 +19,8 @@ codeparty3d.andrescortes.dev {
 }
 
 :80 {
+    encode gzip zstd
+
     handle /socket.io/* {
         reverse_proxy backend:3000
     }
